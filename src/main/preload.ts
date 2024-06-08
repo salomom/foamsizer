@@ -24,6 +24,12 @@ const electronHandler = {
   },
 };
 
+contextBridge.exposeInMainWorld('electronAPI', {
+  openFolder: () => ipcRenderer.invoke('dialog:openFolder'),
+  openProperties: (folderPath: string) => ipcRenderer.invoke('dialog:openProperties', folderPath),
+  saveProperties: (folderPath: string, data: string) => ipcRenderer.invoke('dialog:saveProperties', folderPath, data),
+})
+
 contextBridge.exposeInMainWorld('electron', electronHandler);
 
 export type ElectronHandler = typeof electronHandler;

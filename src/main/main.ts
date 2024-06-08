@@ -9,11 +9,12 @@
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
 import path from 'path';
-import { app, BrowserWindow, shell, ipcMain } from 'electron';
+import { app, BrowserWindow, dialog, shell, ipcMain } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
+import fs from 'fs';
 
 class AppUpdater {
   constructor() {
@@ -24,6 +25,38 @@ class AppUpdater {
 }
 
 let mainWindow: BrowserWindow | null = null;
+
+async function handleFolderOpen () {
+  const { canceled, filePaths } = await dialog.showOpenDialog({
+    properties: ['openDirectory']
+  })
+  if (!canceled) {
+    return filePaths[0]
+  }
+}
+
+// Open properties.txt from folder path
+async function handleOpenProperties (event:any, folderPath: string) {
+  const propertiesPath = path.join(folderPath, 'properties.txt')
+  try {
+    const data = await fs.promises.readFile(propertiesPath, 'utf-8')
+    return data
+  } catch (error) {
+    console.error(error)
+    return null
+  }
+}
+
+async function handleSaveProperties (event:any, folderPath: string, data: string) {
+  const propertiesPath = path.join(folderPath, 'properties.txt')
+  try {
+    await fs.promises.writeFile(propertiesPath, data, 'utf-8')
+    return true
+  } catch (error) {
+    console.error(error)
+    return false
+  }
+}
 
 ipcMain.on('ipc-example', async (event, arg) => {
   const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
@@ -46,11 +79,11 @@ if (isDebug) {
 const installExtensions = async () => {
   const installer = require('electron-devtools-installer');
   const forceDownload = !!process.env.UPGRADE_EXTENSIONS;
-  const extensions = ['REACT_DEVELOPER_TOOLS'];
+  const extensions:any = [];
 
   return installer
     .default(
-      extensions.map((name) => installer[name]),
+      extensions.map((name:any) => installer[name]),
       forceDownload,
     )
     .catch(console.log);
@@ -82,6 +115,7 @@ const createWindow = async () => {
   });
 
   mainWindow.loadURL(resolveHtmlPath('index.html'));
+  //mainWindow.loadURL('http://localhost:3000/index.html');
 
   mainWindow.on('ready-to-show', () => {
     if (!mainWindow) {
@@ -127,6 +161,9 @@ app.on('window-all-closed', () => {
 app
   .whenReady()
   .then(() => {
+    ipcMain.handle('dialog:openFolder', handleFolderOpen)
+    ipcMain.handle('dialog:openProperties', handleOpenProperties)
+    ipcMain.handle('dialog:saveProperties', handleSaveProperties)
     createWindow();
     app.on('activate', () => {
       // On macOS it's common to re-create a window in the app when the
