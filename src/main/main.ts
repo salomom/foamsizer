@@ -58,6 +58,16 @@ async function handleSaveProperties (event:any, folderPath: string, data: string
   }
 }
 
+async function handleOpenImage (event:any, imgPath: string) {
+  try {
+    const base64img = fs.readFileSync(imgPath).toString('base64')
+    return base64img
+  } catch (error) {
+    console.error(error)
+    return false
+  }
+}
+
 ipcMain.on('ipc-example', async (event, arg) => {
   const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
   console.log(msgTemplate(arg));
@@ -164,6 +174,7 @@ app
     ipcMain.handle('dialog:openFolder', handleFolderOpen)
     ipcMain.handle('dialog:openProperties', handleOpenProperties)
     ipcMain.handle('dialog:saveProperties', handleSaveProperties)
+    ipcMain.handle('dialog:openImage', handleOpenImage)
     createWindow();
     app.on('activate', () => {
       // On macOS it's common to re-create a window in the app when the

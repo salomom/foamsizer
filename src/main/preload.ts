@@ -28,6 +28,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   openFolder: () => ipcRenderer.invoke('dialog:openFolder'),
   openProperties: (folderPath: string) => ipcRenderer.invoke('dialog:openProperties', folderPath),
   saveProperties: (folderPath: string, data: string) => ipcRenderer.invoke('dialog:saveProperties', folderPath, data),
+  openImage: (imgPath: string) => ipcRenderer.invoke('dialog:openImage', imgPath),
 })
 
 contextBridge.exposeInMainWorld('electron', electronHandler);

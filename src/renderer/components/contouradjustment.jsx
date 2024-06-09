@@ -1,0 +1,174 @@
+import { Stage, Layer, Rect, Circle, Image, Transformer } from 'react-konva';
+import useImage from 'use-image';
+import { useState, useRef, useEffect } from 'react';
+import ButtonBar from './toolbar';
+
+export default function ContourAdjuster({ image }) {
+  const [placedShapes, setPlacedShapes] = useState([]);
+  const [selectedShape, setSelectedShape] = useState(-1);
+  const [contourPoints, setContourPoints] = useState([]);
+  const tRef = useRef();
+  const shapeRef = useRef();
+  image = image
+    ? 'data:image/jpg;base64,' + image
+    : 'https://placehold.co/500x500';
+  const [konvaImage] = useImage(image);
+  const stageSize = { height: 700, width: 700 };
+  const scale = getScale({ image: konvaImage, stageSize });
+
+  function setNewPosition(key, position) {
+    position = { x: parseInt(position.x), y: parseInt(position.y) };
+    const newPlacedShapes = placedShapes.map((shape, index) =>
+      shape.key === key ? { ...shape, ...position } : shape,
+    );
+    setPlacedShapes(newPlacedShapes);
+  }
+
+  function setNewSize(key, height, width, rotation) {
+    height = parseInt(height);
+    width = parseInt(width);
+    rotation = parseInt(rotation);
+    const newPlacedShapes = placedShapes.map((shape, index) =>
+      shape.key === key
+        ? { ...shape, height: height, width: width, rotation: rotation }
+        : shape,
+    );
+    setPlacedShapes(newPlacedShapes);
+  }
+
+  function removeShape(key) {
+    const newPlacedShapes = placedShapes.filter((shape) => shape.key !== key);
+    setPlacedShapes(newPlacedShapes);
+  }
+
+  function createRect() {
+    const newPlacedShapes = [
+      ...placedShapes,
+      {
+        type: 'rect',
+        key: placedShapes.length,
+        x: 100,
+        y: 100,
+        width: 100,
+        height: 100,
+        rotation: 0,
+        fill: 'red',
+      },
+    ];
+    setPlacedShapes(newPlacedShapes);
+  }
+
+  function checkDeselect(e) {
+    // deselect when clicked on empty area
+    const clickedOnEmpty = e.target.className === 'Image';
+    if (clickedOnEmpty) {
+      setSelectedShape(-1);
+    }
+  }
+
+  return (
+    <div className="w-[70%] h-[80%] bg-slate-700 mr-20 rounded-md">
+      <ButtonBar
+        selectedTool={placedShapes.find((shape) => shape.key === selectedShape)}
+        remove={() => removeShape(selectedShape)}
+        createRect={createRect}
+      />
+      <Stage
+        width={stageSize.width}
+        height={stageSize.height}
+        onClick={checkDeselect}
+      >
+        <Layer>
+          <Image
+            image={konvaImage}
+            height={konvaImage?.naturalHeight * scale}
+            width={konvaImage?.naturalWidth * scale}
+          />
+          {placedShapes.map((shape, i) => (
+            <PlacedShape
+              key={shape.key}
+              shape={shape}
+              scale={scale}
+              isSelected={selectedShape === shape.key}
+              onSelect={() => setSelectedShape(shape.key)}
+              setNewPosition={setNewPosition}
+              setNewSize={(height, width, rotation) => {
+                setNewSize(shape.key, height, width, rotation);
+              }}
+            />
+          ))}
+        </Layer>
+      </Stage>
+    </div>
+  );
+}
+
+function PlacedShape({
+  shape,
+  scale,
+  isSelected,
+  onSelect,
+  setNewPosition,
+  setNewSize,
+}) {
+  const shapeRef = useRef();
+  const trRef = useRef();
+
+  useEffect(() => {
+    if (isSelected) {
+      // we need to attach transformer manually
+      trRef.current.nodes([shapeRef.current]);
+      trRef.current.getLayer().batchDraw();
+    }
+  }, [isSelected]);
+
+  function transform(e) {
+    const shape = e.target;
+    shape.width((shape.width() * shape.scaleX()) / scale);
+    shape.height((shape.height() * shape.scaleY()) / scale);
+    // reset scale
+    shape.scaleX(scale);
+    shape.scaleY(scale);
+    setNewSize(shape.height(), shape.width(), shape.rotation());
+  }
+
+  return (
+    <>
+      {shape.type === 'rect' && (
+        <Rect
+          x={shape.x}
+          y={shape.y}
+          width={shape.width}
+          height={shape.height}
+          fill={shape.fill}
+          scaleX={scale}
+          scaleY={scale}
+          onClick={onSelect}
+          ref={shapeRef}
+          onDragEnd={(e) =>
+            setNewPosition(shape.key, { x: e.target.x(), y: e.target.y() })
+          }
+          onTransformEnd={transform}
+          draggable
+        />
+      )}
+      {shape.type === 'circle' && (
+        <Circle onClick={onSelect} ref={shapeRef} draggable />
+      )}
+      {isSelected && (
+        <Transformer
+          ref={trRef}
+          rotationSnaps={[0, 45, 90, 135, 180, 225, 270, 315]}
+        />
+      )}
+    </>
+  );
+}
+
+function getScale({ image, stageSize }) {
+  if (!image) return 1;
+  return Math.min(
+    stageSize.width / image.naturalWidth,
+    stageSize.height / image.naturalHeight,
+  );
+}
