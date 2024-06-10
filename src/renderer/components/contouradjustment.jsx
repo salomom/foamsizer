@@ -231,6 +231,39 @@ export default function ContourAdjuster({
     [placedShapes, selectedShape],
   );
 
+  function handleZoom(e) {
+    const scaleBy = 1.05;
+    e.evt.preventDefault();
+    const stage = e.target.getStage();
+
+    var oldScale = stage.scaleX();
+    var pointer = stage.getPointerPosition();
+
+    var mousePointTo = {
+      x: (pointer.x - stage.x()) / oldScale,
+      y: (pointer.y - stage.y()) / oldScale,
+    };
+
+    // how to scale? Zoom in? Or zoom out?
+    let direction = e.evt.deltaY > 0 ? 1 : -1;
+
+    // when we zoom on trackpad, e.evt.ctrlKey is true
+    // in that case lets revert direction
+    if (e.evt.ctrlKey) {
+      direction = -direction;
+    }
+
+    var newScale = direction > 0 ? oldScale * scaleBy : oldScale / scaleBy;
+
+    stage.scale({ x: newScale, y: newScale });
+
+    var newPos = {
+      x: pointer.x - mousePointTo.x * newScale,
+      y: pointer.y - mousePointTo.y * newScale,
+    };
+    stage.position(newPos);
+  }
+
   useEffect(() => {
     getContourPoints().then(setContourPoints);
     getShapes().then(setPlacedShapes);
@@ -260,6 +293,7 @@ export default function ContourAdjuster({
         scaleX={scale}
         scaleY={scale}
         onClick={checkStageClick}
+        onWheel={handleZoom}
       >
         <Layer>
           <Image
@@ -326,7 +360,7 @@ function PlacedShape({
         <Rect
           x={shape.x}
           y={shape.y}
-          opacity={0.5}
+          opacity={0.4}
           rotation={shape.rotation}
           offsetX={shape.width / 2}
           offsetY={shape.height / 2}
@@ -346,7 +380,7 @@ function PlacedShape({
         <Circle
           x={shape.x}
           y={shape.y}
-          opacity={0.5}
+          opacity={0.4}
           offsetX={shape.radius}
           offsetY={shape.radius}
           width={shape.width}
