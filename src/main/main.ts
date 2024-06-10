@@ -36,10 +36,9 @@ async function handleFolderOpen () {
 }
 
 // Open properties.txt from folder path
-async function handleOpenProperties (event:any, folderPath: string) {
-  const propertiesPath = path.join(folderPath, 'properties.txt')
+async function handleReadFile (event:any, filePath: string) {
   try {
-    const data = await fs.promises.readFile(propertiesPath, 'utf-8')
+    const data = await fs.promises.readFile(filePath, 'utf-8')
     return data
   } catch (error) {
     console.error(error)
@@ -172,7 +171,7 @@ app
   .whenReady()
   .then(() => {
     ipcMain.handle('dialog:openFolder', handleFolderOpen)
-    ipcMain.handle('dialog:openProperties', handleOpenProperties)
+    ipcMain.handle('dialog:readFile', handleReadFile)
     ipcMain.handle('dialog:saveProperties', handleSaveProperties)
     ipcMain.handle('dialog:openImage', handleOpenImage)
     createWindow();

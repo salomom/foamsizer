@@ -26,7 +26,7 @@ const electronHandler = {
 
 contextBridge.exposeInMainWorld('electronAPI', {
   openFolder: () => ipcRenderer.invoke('dialog:openFolder'),
-  openProperties: (folderPath: string) => ipcRenderer.invoke('dialog:openProperties', folderPath),
+  readFile: (filePath: string) => ipcRenderer.invoke('dialog:readFile', filePath),
   saveProperties: (folderPath: string, data: string) => ipcRenderer.invoke('dialog:saveProperties', folderPath, data),
   openImage: (imgPath: string) => ipcRenderer.invoke('dialog:openImage', imgPath),
 })

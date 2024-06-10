@@ -6,6 +6,7 @@ export default function InsertSize() {
   const [currentPath, setCurrentPath] = useState('');
   const [textAreaContent, setTextAreaContent] = useState('');
   const [mainImage, setMainImage] = useState('');
+  const [contourPoints, setContourPoints] = useState([]);
 
   async function openFolder() {
     const filePath = await window.electronAPI.openFolder();
@@ -13,7 +14,9 @@ export default function InsertSize() {
       return;
     }
     setCurrentPath(filePath);
-    const fileContent = await window.electronAPI.openProperties(filePath);
+    const fileContent = await window.electronAPI.readFile(
+      filePath + '/properties.txt',
+    );
     if (!fileContent) {
       setTextAreaContent('');
     } else {
@@ -28,6 +31,16 @@ export default function InsertSize() {
     setMainImage(imgBase64);
   }
 
+  async function getContourPoints(filePath) {
+    const contourFileContent = await window.electronAPI.readFile(
+      filePath + '/contour.txt',
+    );
+    if (!contourFileContent) {
+      return [];
+    }
+    return parseContourFile(contourFileContent);
+  }
+
   async function saveProperties(event) {
     event.preventDefault();
     if (!currentPath) {
@@ -37,13 +50,24 @@ export default function InsertSize() {
     await window.electronAPI.saveProperties(currentPath, textAreaContent);
   }
 
+  function parseContourFile(content) {
+    const points = content.split('\n').map((point) => {
+      const [x, y] = point.split(',');
+      return [parseInt(x), parseInt(y)];
+    });
+    return points;
+  }
+
   return (
     <div className="mt-10 mx-10 w-full">
       <div className="mb-5">
         <Button title="Open Folder" big={true} onClick={openFolder} />
       </div>
       <div className="flex">
-        <ContourAdjuster image={mainImage} />
+        <ContourAdjuster
+          image={mainImage}
+          getContourPoints={() => getContourPoints(currentPath)}
+        />
         <PropertiesTable
           content={textAreaContent}
           setContent={setTextAreaContent}

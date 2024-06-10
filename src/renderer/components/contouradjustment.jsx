@@ -3,8 +3,9 @@ import useImage from 'use-image';
 import { useState, useRef, useEffect } from 'react';
 import ButtonBar from './toolbar';
 import { useHotkeys } from 'react-hotkeys-hook';
+import Contour from './contourpoints';
 
-export default function ContourAdjuster({ image }) {
+export default function ContourAdjuster({ image, getContourPoints }) {
   const [placedShapes, setPlacedShapes] = useState([]);
   const [selectedShape, setSelectedShape] = useState(-1);
   const [contourPoints, setContourPoints] = useState([]);
@@ -170,6 +171,10 @@ export default function ContourAdjuster({ image }) {
     [placedShapes, selectedShape],
   );
 
+  useEffect(() => {
+    getContourPoints().then(setContourPoints);
+  }, [image]);
+
   return (
     <div className="w-[70%] h-[80%] bg-slate-700 mr-20 rounded-md">
       <ButtonBar
@@ -192,6 +197,11 @@ export default function ContourAdjuster({ image }) {
             image={konvaImage}
             height={konvaImage?.naturalHeight * scale}
             width={konvaImage?.naturalWidth * scale}
+          />
+          <Contour
+            points={contourPoints}
+            scale={scale}
+            setPoints={setContourPoints}
           />
           {placedShapes.map((shape, i) => (
             <PlacedShape
