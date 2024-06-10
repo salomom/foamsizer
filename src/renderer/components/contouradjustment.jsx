@@ -255,11 +255,6 @@ export default function ContourAdjuster({
             height={konvaImage?.naturalHeight * scale}
             width={konvaImage?.naturalWidth * scale}
           />
-          <Contour
-            points={contourPoints}
-            scale={scale}
-            setPoints={setContourPoints}
-          />
           {placedShapes.map((shape, i) => (
             <PlacedShape
               key={shape.key}
@@ -273,6 +268,11 @@ export default function ContourAdjuster({
               }}
             />
           ))}
+          <Contour
+            points={contourPoints}
+            scale={scale}
+            setPoints={setContourPoints}
+          />
         </Layer>
       </Stage>
     </div>
