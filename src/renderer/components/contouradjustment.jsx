@@ -14,6 +14,7 @@ export default function ContourAdjuster({
   const [placedShapes, setPlacedShapes] = useState([]);
   const [selectedShape, setSelectedShape] = useState(-1);
   const [contourPoints, setContourPoints] = useState([]);
+  const [createPointActive, setCreatePointActive] = useState(false);
   const tRef = useRef();
   const shapeRef = useRef();
   image = image
@@ -135,6 +136,41 @@ export default function ContourAdjuster({
     setPlacedShapes(newPlacedShapes);
   }
 
+  function addContourPoint(x, y) {
+    // find 2 nearest points
+    const distances = contourPoints.map((point, index) => {
+      const [px, py] = point;
+      return { index: index, dist: Math.sqrt((px - x) ** 2 + (py - y) ** 2) };
+    });
+    distances.sort((a, b) => a.dist - b.dist);
+    const nearest = [distances[0].index];
+    for (let i = 1; i < distances.length; i++) {
+      if (Math.abs(distances[i].index - nearest[0]) === 1) {
+        nearest.push(distances[i].index);
+        nearest.sort();
+        break;
+      }
+    }
+    const newContourPoints = [
+      ...contourPoints.slice(0, nearest[0] + 1),
+      [x, y],
+      ...contourPoints.slice(nearest[1]),
+    ];
+    setContourPoints(newContourPoints);
+    setCreatePointActive(false);
+  }
+
+  function checkStageClick(e) {
+    if (createPointActive) {
+      // get pointer position
+      const pos = e.target.getStage().getPointerPosition();
+      console.log(pos);
+      addContourPoint(pos.x, pos.y);
+    } else {
+      checkDeselect(e);
+    }
+  }
+
   function checkDeselect(e) {
     // deselect when clicked on empty area
     const clickedOnEmpty = e.target.className === 'Image';
@@ -206,11 +242,13 @@ export default function ContourAdjuster({
           setNewSize(selectedShape, height, width, rotation);
         }}
         setDepth={(depth) => setNewDepth(selectedShape, depth)}
+        createPoint={() => setCreatePointActive(!createPointActive)}
+        createPointActive={createPointActive}
       />
       <Stage
         width={stageSize.width}
         height={stageSize.height}
-        onClick={checkDeselect}
+        onClick={checkStageClick}
       >
         <Layer>
           <Image

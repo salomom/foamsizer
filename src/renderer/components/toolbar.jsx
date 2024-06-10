@@ -2,6 +2,7 @@ import {
   FaArrowRotateLeft,
   FaArrowRotateRight,
   FaBorderAll,
+  FaCrosshairs,
   FaDrawPolygon,
   FaFloppyDisk,
   FaRegCircle,
@@ -22,6 +23,8 @@ export default function ButtonBar({
   setPosition,
   setSize,
   setDepth,
+  createPoint,
+  createPointActive,
 }) {
   return (
     <div>
@@ -52,6 +55,12 @@ export default function ButtonBar({
           icon={<FaT className="m-auto" />}
           clickFunction={createText}
           tooltip="Text"
+        />
+        <ToolButton
+          icon={<FaCrosshairs className="m-auto" />}
+          clickFunction={createPoint}
+          active={createPointActive}
+          tooltip="Create Point"
         />
       </div>
       <div className="w-full flex flex-row h-12 bg-indigo-800">
@@ -130,7 +139,11 @@ function ToolButton({
   tooltip = '',
   clickFunction = () => {},
   bgcolor = 'bg-indigo-800 hover:bg-indigo-500',
+  active = false,
 }) {
+  if (active) {
+    bgcolor = 'bg-indigo-500';
+  }
   return (
     <button
       onClick={clickFunction}
