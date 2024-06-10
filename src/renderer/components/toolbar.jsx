@@ -25,97 +25,100 @@ export default function ButtonBar({
   setRotation,
 }) {
   return (
-    <div className="bg-sky-800 w-full flex flex-row">
-      <ToolButton
-        text="Speichern und beenden"
-        icon={<FaFloppyDisk className="inline-block mb-1 mr-3" />}
-        clickFunction={submit}
-        bgcolor="bg-green-700 hover:bg-green-600"
-      />
-      <ToolButton
-        icon={<FaTrash className="m-auto" />}
-        clickFunction={remove}
-        tooltip="Löschen"
-      />
-      <div className="w-12"></div>
-      <ToolButton
-        icon={<FaRegSquare className="m-auto" />}
-        clickFunction={createRect}
-        tooltip="Rechteck"
-      />
-      <ToolButton
-        icon={<FaRegCircle className="m-auto" />}
-        clickFunction={createCircle}
-        tooltip="Kreis"
-      />
-      <ToolButton
-        icon={<FaT className="m-auto" />}
-        clickFunction={createText}
-        tooltip="Text"
-      />
-      {selectedTool?.key === undefined ? (
-        <></>
-      ) : (
-        <>
-          <div className="w-12"></div>
-          <InputField
-            label="X:"
-            value={selectedTool?.x}
-            setValue={(x) => {
-              setPosition(selectedTool.key, { x: x, y: selectedTool.y });
-            }}
-            disabled={true}
-          />
-          <InputField
-            label="Y:"
-            value={selectedTool?.y}
-            setValue={(y) => {
-              setPosition(selectedTool.key, { x: selectedTool.x, y: y });
-            }}
-            disabled={true}
-          />
-          {selectedTool?.type !== 'circle' ? (
-            <>
-              <InputField
-                label="Höhe:"
-                value={selectedTool?.height}
-                setValue={(height) => {
-                  setSize(height, selectedTool.width);
-                }}
-              />
-              <InputField
-                label="Breite:"
-                value={selectedTool?.width}
-                setValue={(width) => {
-                  setSize(selectedTool.height, width);
-                }}
-              />
-            </>
-          ) : (
+    <div>
+      <div className="bg-indigo-800 w-full flex flex-row">
+        <ToolButton
+          text="Speichern und beenden"
+          icon={<FaFloppyDisk className="inline-block mb-1 mr-3" />}
+          clickFunction={submit}
+          bgcolor="bg-indigo-700 hover:bg-indigo-600"
+        />
+        <ToolButton
+          icon={<FaTrash className="m-auto" />}
+          clickFunction={remove}
+          tooltip="Löschen"
+        />
+        <div className="w-12"></div>
+        <ToolButton
+          icon={<FaRegSquare className="m-auto" />}
+          clickFunction={createRect}
+          tooltip="Rechteck"
+        />
+        <ToolButton
+          icon={<FaRegCircle className="m-auto" />}
+          clickFunction={createCircle}
+          tooltip="Kreis"
+        />
+        <ToolButton
+          icon={<FaT className="m-auto" />}
+          clickFunction={createText}
+          tooltip="Text"
+        />
+      </div>
+      <div className="w-full flex flex-row h-12 bg-indigo-800">
+        {selectedTool?.key === undefined ? (
+          <></>
+        ) : (
+          <>
             <InputField
-              label="Durchmesser:"
-              value={selectedTool?.width}
-              setValue={(height) => {
-                setSize(height, height);
+              label="X:"
+              value={selectedTool?.x}
+              setValue={(x) => {
+                setPosition(selectedTool.key, { x: x, y: selectedTool.y });
               }}
+              disabled={true}
             />
-          )}
-          <InputField
-            label="Tiefe:"
-            value={selectedTool?.depth}
-            setValue={setDepth}
-          />
-          {selectedTool?.type !== 'circle' && (
             <InputField
-              label="Rotation:"
-              value={selectedTool?.rotation}
-              setValue={setRotation}
-              min={0}
-              max={360}
+              label="Y:"
+              value={selectedTool?.y}
+              setValue={(y) => {
+                setPosition(selectedTool.key, { x: selectedTool.x, y: y });
+              }}
+              disabled={true}
             />
-          )}
-        </>
-      )}
+            {selectedTool?.type !== 'circle' ? (
+              <>
+                <InputField
+                  label="Höhe:"
+                  value={selectedTool?.height}
+                  setValue={(height) => {
+                    setSize(height, selectedTool.width);
+                  }}
+                />
+                <InputField
+                  label="Breite:"
+                  value={selectedTool?.width}
+                  setValue={(width) => {
+                    setSize(selectedTool.height, width);
+                  }}
+                />
+              </>
+            ) : (
+              <InputField
+                label="Durchmesser:"
+                value={selectedTool?.width}
+                setValue={(height) => {
+                  setSize(height, height);
+                }}
+              />
+            )}
+            <InputField
+              label="Tiefe:"
+              value={selectedTool?.depth}
+              setValue={setDepth}
+            />
+            {selectedTool?.type !== 'circle' && (
+              <InputField
+                label="Rotation:"
+                value={selectedTool?.rotation}
+                setValue={setRotation}
+                min={0}
+                max={360}
+              />
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }
@@ -125,7 +128,7 @@ function ToolButton({
   icon = null,
   tooltip = '',
   clickFunction = () => {},
-  bgcolor = 'bg-sky-800 hover:bg-sky-700',
+  bgcolor = 'bg-indigo-800 hover:bg-indigo-500',
 }) {
   return (
     <button
@@ -149,7 +152,7 @@ function InputField({
 }) {
   value = parseInt(value);
   return (
-    <div className="flex flex-row items-center w-32">
+    <div className="flex flex-row items-center min-w-32 pl-3">
       <label className="text-slate-100 font-bold mr-2">{label}</label>
       <input
         type="number"
