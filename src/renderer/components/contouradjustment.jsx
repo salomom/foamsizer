@@ -172,7 +172,7 @@ export default function ContourAdjuster({
     if (createPointActive) {
       // get pointer position
       const pos = e.target.getStage().getPointerPosition();
-      addContourPoint(pos.x, pos.y);
+      addContourPoint(pos.x / scale, pos.y / scale);
     } else {
       checkDeselect(e);
     }
@@ -255,25 +255,26 @@ export default function ContourAdjuster({
       <Stage
         width={stageSize.width}
         height={stageSize.height}
+        scaleX={scale}
+        scaleY={scale}
         onClick={checkStageClick}
       >
         <Layer>
           <Image
             image={konvaImage}
-            height={konvaImage?.naturalHeight * scale}
-            width={konvaImage?.naturalWidth * scale}
+            height={konvaImage?.naturalHeight}
+            width={konvaImage?.naturalWidth}
           />
           <Line
             points={contourPoints.flat()}
             stroke={'red'}
-            strokeWidth={2}
+            strokeWidth={5}
             closed
           />
           {placedShapes.map((shape, i) => (
             <PlacedShape
               key={shape.key}
               shape={shape}
-              scale={scale}
               isSelected={selectedShape === shape.key}
               onSelect={() => setSelectedShape(shape.key)}
               setNewPosition={setNewPosition}
@@ -282,11 +283,7 @@ export default function ContourAdjuster({
               }}
             />
           ))}
-          <Contour
-            points={contourPoints}
-            scale={scale}
-            setPoints={setContourPoints}
-          />
+          <Contour points={contourPoints} setPoints={setContourPoints} />
         </Layer>
       </Stage>
     </div>
@@ -295,7 +292,6 @@ export default function ContourAdjuster({
 
 function PlacedShape({
   shape,
-  scale,
   isSelected,
   onSelect,
   setNewPosition,
@@ -314,11 +310,11 @@ function PlacedShape({
 
   function transform(e) {
     const shape = e.target;
-    shape.width((shape.width() * shape.scaleX()) / scale);
-    shape.height((shape.height() * shape.scaleY()) / scale);
+    shape.width(shape.width() * shape.scaleX());
+    shape.height(shape.height() * shape.scaleY());
     // reset scale
-    shape.scaleX(scale);
-    shape.scaleY(scale);
+    shape.scaleX(1);
+    shape.scaleY(1);
     setNewSize(shape.height(), shape.width(), shape.rotation());
   }
 
@@ -335,8 +331,6 @@ function PlacedShape({
           width={shape.width}
           height={shape.height}
           fill={shape.fill}
-          scaleX={scale}
-          scaleY={scale}
           onMouseDown={onSelect}
           ref={shapeRef}
           onDragEnd={(e) =>
@@ -357,8 +351,6 @@ function PlacedShape({
           height={shape.height}
           radius={shape.height / 2}
           fill={shape.fill}
-          scaleX={scale}
-          scaleY={scale}
           onMouseDown={onSelect}
           ref={shapeRef}
           onDragEnd={(e) =>

@@ -1,5 +1,5 @@
 import { Circle } from 'react-konva';
-export default function Contour({ points, setPoints, scale }) {
+export default function Contour({ points, setPoints }) {
   return (
     <>
       {points.map((point, index) => (
@@ -7,7 +7,7 @@ export default function Contour({ points, setPoints, scale }) {
           key={index}
           x={point[0]}
           y={point[1]}
-          radius={7}
+          radius={17}
           fill={'red'}
           draggable
           onDragMove={(event) => {
