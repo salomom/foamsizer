@@ -1,9 +1,17 @@
-import { Stage, Layer, Rect, Circle, Image, Transformer } from 'react-konva';
-import useImage from 'use-image';
-import { useState, useRef, useEffect } from 'react';
-import ButtonBar from './toolbar';
+import { useEffect, useRef, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
+import {
+  Circle,
+  Image,
+  Layer,
+  Line,
+  Rect,
+  Stage,
+  Transformer,
+} from 'react-konva';
+import useImage from 'use-image';
 import Contour from './contourpoints';
+import ButtonBar from './toolbar';
 
 export default function ContourAdjuster({
   image,
@@ -254,6 +262,12 @@ export default function ContourAdjuster({
             image={konvaImage}
             height={konvaImage?.naturalHeight * scale}
             width={konvaImage?.naturalWidth * scale}
+          />
+          <Line
+            points={contourPoints.flat()}
+            stroke={'red'}
+            strokeWidth={2}
+            closed
           />
           {placedShapes.map((shape, i) => (
             <PlacedShape

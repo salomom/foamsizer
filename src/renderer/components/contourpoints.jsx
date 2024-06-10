@@ -1,8 +1,7 @@
-import { Circle, Line } from 'react-konva';
+import { Circle } from 'react-konva';
 export default function Contour({ points, setPoints, scale }) {
   return (
     <>
-      <Line points={points.flat()} stroke={'red'} strokeWidth={2} closed />
       {points.map((point, index) => (
         <Circle
           key={index}
