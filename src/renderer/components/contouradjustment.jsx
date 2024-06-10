@@ -58,6 +58,21 @@ export default function ContourAdjuster({ image }) {
     setPlacedShapes(newPlacedShapes);
   }
 
+  function createCircle() {
+    const newPlacedShapes = [
+      ...placedShapes,
+      {
+        type: 'circle',
+        key: placedShapes.length,
+        x: 100,
+        y: 100,
+        radius: 50,
+        fill: 'green',
+      },
+    ];
+    setPlacedShapes(newPlacedShapes);
+  }
+
   function checkDeselect(e) {
     // deselect when clicked on empty area
     const clickedOnEmpty = e.target.className === 'Image';
@@ -72,6 +87,7 @@ export default function ContourAdjuster({ image }) {
         selectedTool={placedShapes.find((shape) => shape.key === selectedShape)}
         remove={() => removeShape(selectedShape)}
         createRect={createRect}
+        createCircle={createCircle}
       />
       <Stage
         width={stageSize.width}
@@ -143,21 +159,36 @@ function PlacedShape({
           fill={shape.fill}
           scaleX={scale}
           scaleY={scale}
-          onClick={onSelect}
+          onMouseDown={onSelect}
           ref={shapeRef}
           onDragEnd={(e) =>
             setNewPosition(shape.key, { x: e.target.x(), y: e.target.y() })
           }
-          onTransformEnd={transform}
+          onTransform={transform}
           draggable
         />
       )}
       {shape.type === 'circle' && (
-        <Circle onClick={onSelect} ref={shapeRef} draggable />
+        <Circle
+          x={shape.x}
+          y={shape.y}
+          radius={shape.radius}
+          fill={shape.fill}
+          scaleX={scale}
+          scaleY={scale}
+          onMouseDown={onSelect}
+          ref={shapeRef}
+          onDragEnd={(e) =>
+            setNewPosition(shape.key, { x: e.target.x(), y: e.target.y() })
+          }
+          onTransform={transform}
+          draggable
+        />
       )}
       {isSelected && (
         <Transformer
           ref={trRef}
+          rotateEnabled={shape.type !== 'circle'}
           rotationSnaps={[0, 45, 90, 135, 180, 225, 270, 315]}
         />
       )}
