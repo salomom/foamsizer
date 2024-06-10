@@ -2,6 +2,7 @@ import { Stage, Layer, Rect, Circle, Image, Transformer } from 'react-konva';
 import useImage from 'use-image';
 import { useState, useRef, useEffect } from 'react';
 import ButtonBar from './toolbar';
+import { useHotkeys } from 'react-hotkeys-hook';
 
 export default function ContourAdjuster({ image }) {
   const [placedShapes, setPlacedShapes] = useState([]);
@@ -28,6 +29,11 @@ export default function ContourAdjuster({ image }) {
     height = parseInt(height);
     width = parseInt(width);
     rotation = parseInt(rotation);
+    if (rotation < 0) {
+      rotation = 360 + rotation;
+    } else if (rotation >= 360) {
+      rotation = rotation - 360;
+    }
     const newPlacedShapes = placedShapes.map((shape, index) =>
       shape.key === key
         ? { ...shape, height: height, width: width, rotation: rotation }
@@ -36,9 +42,45 @@ export default function ContourAdjuster({ image }) {
     setPlacedShapes(newPlacedShapes);
   }
 
+  function setNewDepth(key, depth) {
+    depth = parseInt(depth);
+    const newPlacedShapes = placedShapes.map((shape, index) =>
+      shape.key === key ? { ...shape, depth: depth } : shape,
+    );
+    setPlacedShapes(newPlacedShapes);
+  }
+
   function removeShape(key) {
     const newPlacedShapes = placedShapes.filter((shape) => shape.key !== key);
     setPlacedShapes(newPlacedShapes);
+  }
+
+  function moveShape(key, direction) {
+    const stepSize = 1;
+    const newPlacedShape = placedShapes.map((shape) => {
+      if (shape.key === key) {
+        var newShape;
+        switch (direction) {
+          case 'up':
+            newShape = { ...shape, y: shape.y - stepSize };
+            break;
+          case 'down':
+            newShape = { ...shape, y: shape.y + stepSize };
+            break;
+          case 'left':
+            newShape = { ...shape, x: shape.x - stepSize };
+            break;
+          case 'right':
+            newShape = { ...shape, x: shape.x + stepSize };
+            break;
+          default:
+            return shape;
+        }
+        return newShape;
+      }
+      return shape;
+    });
+    setPlacedShapes(newPlacedShape);
   }
 
   function createRect() {
@@ -53,6 +95,7 @@ export default function ContourAdjuster({ image }) {
         height: 100,
         rotation: 0,
         fill: 'red',
+        depth: 10,
       },
     ];
     setPlacedShapes(newPlacedShapes);
@@ -66,8 +109,10 @@ export default function ContourAdjuster({ image }) {
         key: placedShapes.length,
         x: 100,
         y: 100,
-        radius: 50,
+        height: 50,
+        width: 50,
         fill: 'green',
+        depth: 10,
       },
     ];
     setPlacedShapes(newPlacedShapes);
@@ -81,6 +126,50 @@ export default function ContourAdjuster({ image }) {
     }
   }
 
+  useHotkeys(
+    'delete',
+    () => {
+      removeShape(selectedShape);
+    },
+    [placedShapes, selectedShape],
+  );
+  useHotkeys(
+    'up',
+    () => {
+      if (selectedShape !== -1) {
+        moveShape(selectedShape, 'up');
+      }
+    },
+    [placedShapes, selectedShape],
+  );
+  useHotkeys(
+    'down',
+    () => {
+      if (selectedShape !== -1) {
+        moveShape(selectedShape, 'down');
+      }
+    },
+    [placedShapes, selectedShape],
+  );
+  useHotkeys(
+    'left',
+    () => {
+      if (selectedShape !== -1) {
+        moveShape(selectedShape, 'left');
+      }
+    },
+    [placedShapes, selectedShape],
+  );
+  useHotkeys(
+    'right',
+    () => {
+      if (selectedShape !== -1) {
+        moveShape(selectedShape, 'right');
+      }
+    },
+    [placedShapes, selectedShape],
+  );
+
   return (
     <div className="w-[70%] h-[80%] bg-slate-700 mr-20 rounded-md">
       <ButtonBar
@@ -88,6 +177,10 @@ export default function ContourAdjuster({ image }) {
         remove={() => removeShape(selectedShape)}
         createRect={createRect}
         createCircle={createCircle}
+        setSize={(height, width, rotation) => {
+          setNewSize(selectedShape, height, width, rotation);
+        }}
+        setDepth={(depth) => setNewDepth(selectedShape, depth)}
       />
       <Stage
         width={stageSize.width}
@@ -154,6 +247,9 @@ function PlacedShape({
         <Rect
           x={shape.x}
           y={shape.y}
+          rotation={shape.rotation}
+          offsetX={shape.width / 2}
+          offsetY={shape.height / 2}
           width={shape.width}
           height={shape.height}
           fill={shape.fill}
@@ -172,7 +268,11 @@ function PlacedShape({
         <Circle
           x={shape.x}
           y={shape.y}
-          radius={shape.radius}
+          offsetX={shape.radius}
+          offsetY={shape.radius}
+          width={shape.width}
+          height={shape.height}
+          radius={shape.height / 2}
           fill={shape.fill}
           scaleX={scale}
           scaleY={scale}

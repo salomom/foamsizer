@@ -22,7 +22,6 @@ export default function ButtonBar({
   setPosition,
   setSize,
   setDepth,
-  setRotation,
 }) {
   return (
     <div>
@@ -82,14 +81,14 @@ export default function ButtonBar({
                   label="Höhe:"
                   value={selectedTool?.height}
                   setValue={(height) => {
-                    setSize(height, selectedTool.width);
+                    setSize(height, selectedTool.width, selectedTool.rotation);
                   }}
                 />
                 <InputField
                   label="Breite:"
                   value={selectedTool?.width}
                   setValue={(width) => {
-                    setSize(selectedTool.height, width);
+                    setSize(selectedTool.height, width, selectedTool.rotation);
                   }}
                 />
               </>
@@ -98,7 +97,7 @@ export default function ButtonBar({
                 label="Durchmesser:"
                 value={selectedTool?.width}
                 setValue={(height) => {
-                  setSize(height, height);
+                  setSize(height, height, 0);
                 }}
               />
             )}
@@ -111,7 +110,9 @@ export default function ButtonBar({
               <InputField
                 label="Rotation:"
                 value={selectedTool?.rotation}
-                setValue={setRotation}
+                setValue={(rotation) => {
+                  setSize(selectedTool.height, selectedTool.width, rotation);
+                }}
                 min={0}
                 max={360}
               />
