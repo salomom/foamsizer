@@ -47,7 +47,18 @@ export default function InsertSize() {
       alert('Please open a folder first');
       return;
     }
-    await window.electronAPI.saveProperties(currentPath, textAreaContent);
+    await window.electronAPI.writeFile(
+      currentPath + '/properties.txt',
+      textAreaContent,
+    );
+  }
+
+  async function saveShapes(shapes) {
+    await window.electronAPI.writeFile(currentPath + '/shapes.txt', shapes);
+  }
+
+  async function saveContourPoints(points) {
+    await window.electronAPI.writeFile(currentPath + '/contour.txt', points);
   }
 
   function parseContourFile(content) {
@@ -67,6 +78,8 @@ export default function InsertSize() {
         <ContourAdjuster
           image={mainImage}
           getContourPoints={() => getContourPoints(currentPath)}
+          saveShapes={saveShapes}
+          saveContourPoints={saveContourPoints}
         />
         <PropertiesTable
           content={textAreaContent}

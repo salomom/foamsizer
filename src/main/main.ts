@@ -46,10 +46,9 @@ async function handleReadFile (event:any, filePath: string) {
   }
 }
 
-async function handleSaveProperties (event:any, folderPath: string, data: string) {
-  const propertiesPath = path.join(folderPath, 'properties.txt')
+async function handleWriteFile (event:any, filePath: string, data: string) {
   try {
-    await fs.promises.writeFile(propertiesPath, data, 'utf-8')
+    await fs.promises.writeFile(filePath, data, 'utf-8')
     return true
   } catch (error) {
     console.error(error)
@@ -172,7 +171,7 @@ app
   .then(() => {
     ipcMain.handle('dialog:openFolder', handleFolderOpen)
     ipcMain.handle('dialog:readFile', handleReadFile)
-    ipcMain.handle('dialog:saveProperties', handleSaveProperties)
+    ipcMain.handle('dialog:writeFile', handleWriteFile)
     ipcMain.handle('dialog:openImage', handleOpenImage)
     createWindow();
     app.on('activate', () => {

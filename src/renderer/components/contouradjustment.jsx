@@ -5,7 +5,12 @@ import ButtonBar from './toolbar';
 import { useHotkeys } from 'react-hotkeys-hook';
 import Contour from './contourpoints';
 
-export default function ContourAdjuster({ image, getContourPoints }) {
+export default function ContourAdjuster({
+  image,
+  getContourPoints,
+  saveShapes,
+  saveContourPoints,
+}) {
   const [placedShapes, setPlacedShapes] = useState([]);
   const [selectedShape, setSelectedShape] = useState(-1);
   const [contourPoints, setContourPoints] = useState([]);
@@ -17,6 +22,17 @@ export default function ContourAdjuster({ image, getContourPoints }) {
   const [konvaImage] = useImage(image);
   const stageSize = { height: 700, width: 700 };
   const scale = getScale({ image: konvaImage, stageSize });
+
+  function contourPointsToFile() {
+    const points = contourPoints.map((point) => point.join(',')).join('\n');
+    saveContourPoints(points);
+  }
+
+  function shapesToFile() {
+    // Placed shapes to json
+    const shapes = JSON.stringify(placedShapes);
+    saveShapes(shapes);
+  }
 
   function setNewPosition(key, position) {
     position = { x: parseInt(position.x), y: parseInt(position.y) };
@@ -178,6 +194,10 @@ export default function ContourAdjuster({ image, getContourPoints }) {
   return (
     <div className="w-[70%] h-[80%] bg-slate-700 mr-20 rounded-md">
       <ButtonBar
+        submit={() => {
+          contourPointsToFile();
+          shapesToFile();
+        }}
         selectedTool={placedShapes.find((shape) => shape.key === selectedShape)}
         remove={() => removeShape(selectedShape)}
         createRect={createRect}
