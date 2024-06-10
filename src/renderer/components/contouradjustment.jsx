@@ -16,6 +16,7 @@ import ButtonBar from './toolbar';
 export default function ContourAdjuster({
   image,
   getContourPoints,
+  getShapes,
   saveShapes,
   saveContourPoints,
 }) {
@@ -232,6 +233,7 @@ export default function ContourAdjuster({
 
   useEffect(() => {
     getContourPoints().then(setContourPoints);
+    getShapes().then(setPlacedShapes);
   }, [image]);
 
   return (

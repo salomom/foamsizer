@@ -41,6 +41,16 @@ export default function InsertSize() {
     return parseContourFile(contourFileContent);
   }
 
+  async function getShapes(filePath) {
+    const shapesFileContent = await window.electronAPI.readFile(
+      filePath + '/shapes.txt',
+    );
+    if (!shapesFileContent) {
+      return [];
+    }
+    return JSON.parse(shapesFileContent);
+  }
+
   async function saveProperties(event) {
     event.preventDefault();
     if (!currentPath) {
@@ -78,6 +88,7 @@ export default function InsertSize() {
         <ContourAdjuster
           image={mainImage}
           getContourPoints={() => getContourPoints(currentPath)}
+          getShapes={() => getShapes(currentPath)}
           saveShapes={saveShapes}
           saveContourPoints={saveContourPoints}
         />
