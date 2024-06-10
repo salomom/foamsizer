@@ -164,7 +164,6 @@ export default function ContourAdjuster({
     if (createPointActive) {
       // get pointer position
       const pos = e.target.getStage().getPointerPosition();
-      console.log(pos);
       addContourPoint(pos.x, pos.y);
     } else {
       checkDeselect(e);
