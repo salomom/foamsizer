@@ -247,6 +247,7 @@ function PlacedShape({
         <Rect
           x={shape.x}
           y={shape.y}
+          opacity={0.5}
           rotation={shape.rotation}
           offsetX={shape.width / 2}
           offsetY={shape.height / 2}
@@ -268,6 +269,7 @@ function PlacedShape({
         <Circle
           x={shape.x}
           y={shape.y}
+          opacity={0.5}
           offsetX={shape.radius}
           offsetY={shape.radius}
           width={shape.width}
