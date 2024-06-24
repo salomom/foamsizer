@@ -3,19 +3,20 @@ import imutils
 import numpy as np
 
 # Read image
-img = cv2.imread('img/4.JPEG')
+img = cv2.imread('img/plier3.jpg')
 hh, ww = img.shape[:2]
 
 # threshold on white
 # Define lower and uppper limits
-lower = np.array([40, 40, 40])
-upper = np.array([255, 255, 255])
+lower = np.array([28, 38, 28])
+upper = np.array([160, 255, 255])
 
 # Blur image to remove noise
 img = cv2.GaussianBlur(img, (5, 5), 0)
 
 # Create mask to only select black
 thresh = cv2.inRange(img, lower, upper)
+thresh = cv2.bitwise_not(thresh)
 # apply morphology
 kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (20, 20))
 morph = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
