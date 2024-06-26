@@ -22,7 +22,7 @@ export default function InsertSize() {
     } else {
       setTextAreaContent(fileContent);
     }
-    const imgPath = filePath + '/main.jpeg';
+    const imgPath = filePath + '/main.jpg';
     const imgBase64 = await window.electronAPI.openImage(imgPath);
     if (!imgBase64) {
       setMainImage('');
@@ -31,12 +31,21 @@ export default function InsertSize() {
     setMainImage(imgBase64);
   }
 
+  async function analyzeImage() {
+    const points = await window.electronAPI.analyzeImage(
+      currentPath + '/main.jpg',
+    );
+    return points;
+  }
+
   async function getContourPoints(filePath) {
     const contourFileContent = await window.electronAPI.readFile(
       filePath + '/contour.txt',
     );
     if (!contourFileContent) {
-      return [];
+      const points = await analyzeImage();
+      console.log(points);
+      return points;
     }
     return parseContourFile(contourFileContent);
   }
@@ -81,7 +90,7 @@ export default function InsertSize() {
 
   return (
     <div className="mt-10 mx-10 w-full">
-      <div className="mb-5">
+      <div className="mb-5 flex">
         <Button title="Open Folder" big={true} onClick={openFolder} />
       </div>
       <div className="flex">

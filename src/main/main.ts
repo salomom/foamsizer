@@ -15,6 +15,8 @@ import log from 'electron-log';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 import fs from 'fs';
+const spawn = require("child_process").spawn;
+
 
 class AppUpdater {
   constructor() {
@@ -64,6 +66,30 @@ async function handleOpenImage (event:any, imgPath: string) {
     console.error(error)
     return false
   }
+}
+
+async function handleAnalyzeImage (event:any, imgPath: string) {
+  return new Promise((resolve, reject) => {
+    const pyProg = spawn('python', ['./opencv/test.py', imgPath]);
+    var pointString = ''
+    pyProg.stdout.on('data', function(data:any) {
+      // Points are in the format x,y
+      pointString += data.toString()
+    });
+
+    pyProg.on('close', function(code:any) {
+      console.log('Process terminated with code:', code);
+      var points = pointString.split('\n').map((point:any) => {
+        const [x, y] = point.split(',')
+        if (x === '' || y === '') {
+          return null
+        }
+        return [parseInt(x), parseInt(y)]
+      })
+      points = points.filter((point:any) => point !== null)
+      resolve(points);
+    });
+  });
 }
 
 ipcMain.on('ipc-example', async (event, arg) => {
@@ -173,6 +199,7 @@ app
     ipcMain.handle('dialog:readFile', handleReadFile)
     ipcMain.handle('dialog:writeFile', handleWriteFile)
     ipcMain.handle('dialog:openImage', handleOpenImage)
+    ipcMain.handle('execute:analyzeImage', handleAnalyzeImage)
     createWindow();
     app.on('activate', () => {
       // On macOS it's common to re-create a window in the app when the

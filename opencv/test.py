@@ -1,102 +1,67 @@
-from __future__ import print_function
-import cv2 as cv
-import argparse
-max_value = 255
-max_value_H = 360//2
-low_H = 0
-low_S = 0
-low_V = 0
-high_H = max_value_H
-high_S = max_value
-high_V = max_value
-window_capture_name = 'Video Capture'
-window_detection_name = 'Object Detection'
-low_H_name = 'Low H'
-low_S_name = 'Low S'
-low_V_name = 'Low V'
-high_H_name = 'High H'
-high_S_name = 'High S'
-high_V_name = 'High V'
+import cv2
+import numpy as np
+from matplotlib import pyplot as plt
+import sys
 
+# Read args
+image_path = sys.argv[1]
+# Load the image
+# image_path = "C:/Users/timal/Documents/Programmieren/foamsizer/opencv/img/caliper.jpg"
+image = cv2.imread(image_path)
 
-def on_low_H_thresh_trackbar(val):
-    global low_H
-    global high_H
-    low_H = val
-    low_H = min(high_H-1, low_H)
-    cv.setTrackbarPos(low_H_name, window_detection_name, low_H)
+# Convert to grayscale
+gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
+# Apply GaussianBlur to reduce noise
+blurred = cv2.GaussianBlur(gray, (5, 5), 0)
 
-def on_high_H_thresh_trackbar(val):
-    global low_H
-    global high_H
-    high_H = val
-    high_H = max(high_H, low_H+1)
-    cv.setTrackbarPos(high_H_name, window_detection_name, high_H)
+# Use adaptive thresholding
+thresh = cv2.adaptiveThreshold(
+    blurred, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 135, 2)
 
+# Use morphological operations to close gaps
+kernel = np.ones((25, 25), np.uint8)
+morphed = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
 
-def on_low_S_thresh_trackbar(val):
-    global low_S
-    global high_S
-    low_S = val
-    low_S = min(high_S-1, low_S)
-    cv.setTrackbarPos(low_S_name, window_detection_name, low_S)
+# Find contours
+contours, _ = cv2.findContours(
+    morphed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
+# Select the contour with the largest area
+largest_contour = max(contours, key=cv2.contourArea)
 
-def on_high_S_thresh_trackbar(val):
-    global low_S
-    global high_S
-    high_S = val
-    high_S = max(high_S, low_S+1)
-    cv.setTrackbarPos(high_S_name, window_detection_name, high_S)
+# Draw the largest contour on the original image
+contour_image = image.copy()
+cv2.drawContours(contour_image, [largest_contour], -1, (0, 255, 0), 2)
 
+# Draw an approximated contour around the largest contour
+epsilon = 0.0025 * cv2.arcLength(largest_contour, True)
+approx = cv2.approxPolyDP(largest_contour, epsilon, True)
+cv2.drawContours(contour_image, [approx], -1, (0, 0, 255), 2)
 
-def on_low_V_thresh_trackbar(val):
-    global low_V
-    global high_V
-    low_V = val
-    low_V = min(high_V-1, low_V)
-    cv.setTrackbarPos(low_V_name, window_detection_name, low_V)
+# Print approx points
+approx_points = approx.tolist()
+for point in approx_points:
+    print(str(point[0][0]) + "," + str(point[0][1]))
+    sys.stdout.flush()
 
+# Display the original image, thresholded image, and contour image
+plt.figure(figsize=(15, 5))
 
-def on_high_V_thresh_trackbar(val):
-    global low_V
-    global high_V
-    high_V = val
-    high_V = max(high_V, low_V+1)
-    cv.setTrackbarPos(high_V_name, window_detection_name, high_V)
+plt.subplot(1, 4, 1)
+plt.title("Original Image")
+plt.imshow(cv2.cvtColor(blurred, cv2.COLOR_BGR2RGB))
 
+plt.subplot(1, 4, 2)
+plt.title("Thresholded Image")
+plt.imshow(thresh, cmap='gray')
 
-parser = argparse.ArgumentParser(
-    description='Code for Thresholding Operations using inRange tutorial.')
-parser.add_argument(
-    '--camera', help='Camera divide number.', default=0, type=int)
-args = parser.parse_args()
-# cap = cv.VideoCapture(args.camera)
-cv.namedWindow(window_capture_name, cv.WINDOW_NORMAL)
-cv.namedWindow(window_detection_name, cv.WINDOW_NORMAL)
-cv.createTrackbar(low_H_name, window_detection_name, low_H,
-                  max_value_H, on_low_H_thresh_trackbar)
-cv.createTrackbar(high_H_name, window_detection_name, high_H,
-                  max_value_H, on_high_H_thresh_trackbar)
-cv.createTrackbar(low_S_name, window_detection_name, low_S,
-                  max_value, on_low_S_thresh_trackbar)
-cv.createTrackbar(high_S_name, window_detection_name, high_S,
-                  max_value, on_high_S_thresh_trackbar)
-cv.createTrackbar(low_V_name, window_detection_name, low_V,
-                  max_value, on_low_V_thresh_trackbar)
-cv.createTrackbar(high_V_name, window_detection_name, high_V,
-                  max_value, on_high_V_thresh_trackbar)
-while True:
+plt.subplot(1, 4, 3)
+plt.title("Closed Contours")
+plt.imshow(morphed, cmap='gray')
 
-    frame = cv.imread('img/plier3.jpg')
-    frame_HSV = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
-    frame_threshold = cv.inRange(
-        frame_HSV, (low_H, low_S, low_V), (high_H, high_S, high_V))
+plt.subplot(1, 4, 4)
+plt.title("Largest Contour")
+plt.imshow(cv2.cvtColor(contour_image, cv2.COLOR_BGR2RGB))
 
-    cv.imshow(window_capture_name, frame)
-    cv.imshow(window_detection_name, frame_threshold)
-
-    key = cv.waitKey(30)
-    if key == ord('q') or key == 27:
-        break
+# plt.show()

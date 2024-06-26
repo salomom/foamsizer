@@ -29,6 +29,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   readFile: (filePath: string) => ipcRenderer.invoke('dialog:readFile', filePath),
   writeFile: (filePath: string, data: string) => ipcRenderer.invoke('dialog:writeFile', filePath, data),
   openImage: (imgPath: string) => ipcRenderer.invoke('dialog:openImage', imgPath),
+  analyzeImage: (imgPath: string) => ipcRenderer.invoke('execute:analyzeImage', imgPath),
 })
 
 contextBridge.exposeInMainWorld('electron', electronHandler);
