@@ -18,6 +18,11 @@ export default function Contour({ points, setPoints }) {
             );
             setPoints(newPoints);
           }}
+          onContextMenu={(event) => {
+            event.evt.preventDefault();
+            const newPoints = points.filter((p, i) => i !== index);
+            setPoints(newPoints);
+          }}
         />
       ))}
     </>
