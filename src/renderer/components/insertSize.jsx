@@ -44,7 +44,6 @@ export default function InsertSize() {
     );
     if (!contourFileContent) {
       const points = await analyzeImage();
-      console.log(points);
       return points;
     }
     return parseContourFile(contourFileContent);
