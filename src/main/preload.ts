@@ -28,6 +28,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   openFolder: () => ipcRenderer.invoke('dialog:openFolder'),
   readFile: (filePath: string) => ipcRenderer.invoke('dialog:readFile', filePath),
   writeFile: (filePath: string, data: string) => ipcRenderer.invoke('dialog:writeFile', filePath, data),
+  fileExists: (filePath: string) => ipcRenderer.invoke('dialog:fileExists', filePath),
   openImage: (imgPath: string) => ipcRenderer.invoke('dialog:openImage', imgPath),
   analyzeImage: (imgPath: string) => ipcRenderer.invoke('execute:analyzeImage', imgPath),
   scanImage: (imgPath: string) => ipcRenderer.invoke('execute:scanImage', imgPath),

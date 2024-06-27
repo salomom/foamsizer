@@ -37,6 +37,15 @@ async function handleFolderOpen () {
   }
 }
 
+async function handleFileExists (event:any, filePath: string) {
+  try {
+    const exists = await fs.promises.access(filePath, fs.constants.F_OK)
+    return true
+  } catch (error) {
+    return false
+  }
+}
+
 // Open properties.txt from folder path
 async function handleReadFile (event:any, filePath: string) {
   try {
@@ -211,6 +220,7 @@ app
     ipcMain.handle('dialog:readFile', handleReadFile)
     ipcMain.handle('dialog:writeFile', handleWriteFile)
     ipcMain.handle('dialog:openImage', handleOpenImage)
+    ipcMain.handle('dialog:fileExists', handleFileExists)
     ipcMain.handle('execute:analyzeImage', handleAnalyzeImage)
     ipcMain.handle('execute:scanImage', scanImage)
     createWindow();
