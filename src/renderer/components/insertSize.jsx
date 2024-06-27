@@ -13,6 +13,10 @@ export default function InsertSize({ currentPath, setCurrentPath }) {
       return;
     }
     setCurrentPath(filePath);
+    updateFolderContent();
+  }
+
+  async function updateFolderContent() {
     const fileContent = await window.electronAPI.readFile(
       filePath + '/properties.txt',
     );
