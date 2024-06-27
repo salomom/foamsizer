@@ -92,6 +92,18 @@ async function handleAnalyzeImage (event:any, imgPath: string) {
   });
 }
 
+async function scanImage(event: any, filePath: string) {
+  // Uses flatbed scanner to scan image to file
+  return new Promise((resolve, reject) => {
+    console.log(filePath)
+    const scanProg = require('child_process').exec('wia-cmd-scanner.exe /w 0 /h 0 /dpi 300 /color RGB /format PNG /output ' + filePath);
+    scanProg.on('close', function(code: any) {
+      console.log('Process terminated with code:', code);
+      resolve(true);
+    });
+  });
+}
+
 ipcMain.on('ipc-example', async (event, arg) => {
   const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
   console.log(msgTemplate(arg));
@@ -200,6 +212,7 @@ app
     ipcMain.handle('dialog:writeFile', handleWriteFile)
     ipcMain.handle('dialog:openImage', handleOpenImage)
     ipcMain.handle('execute:analyzeImage', handleAnalyzeImage)
+    ipcMain.handle('execute:scanImage', scanImage)
     createWindow();
     app.on('activate', () => {
       // On macOS it's common to re-create a window in the app when the

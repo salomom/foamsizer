@@ -3,16 +3,23 @@ import { Route, MemoryRouter as Router, Routes } from 'react-router-dom';
 import './App.css';
 import Sidebar from './components/sidebar';
 import InsertSize from './components/insertSize';
+import ScanImage from './components/scanImage';
 import { FaArrowsLeftRightToLine } from "react-icons/fa6";
 
 
 function Main() {
   const [activeTab, setActiveTab] = useState(0);
+  const [currentPath, setCurrentPath] = useState('');
   const tabs = [
+    {
+      title: 'Scan',
+      icon: <FaArrowsLeftRightToLine/>,
+      element:<ScanImage currentPath={currentPath}/>
+    },
     {
       title: 'Insert Size',
       icon: <FaArrowsLeftRightToLine/>,
-      element:<InsertSize/>
+      element:<InsertSize currentPath={currentPath} setCurrentPath={setCurrentPath} />
     },
   ];
   return (

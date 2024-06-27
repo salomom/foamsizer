@@ -2,8 +2,7 @@ import Button from './buttons';
 import ContourAdjuster from './contouradjustment';
 import { useState } from 'react';
 
-export default function InsertSize() {
-  const [currentPath, setCurrentPath] = useState('');
+export default function InsertSize({ currentPath, setCurrentPath }) {
   const [textAreaContent, setTextAreaContent] = useState('');
   const [mainImage, setMainImage] = useState('');
   const [contourPoints, setContourPoints] = useState([]);
