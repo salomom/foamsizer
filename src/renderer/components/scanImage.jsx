@@ -1,20 +1,40 @@
 import Button from './buttons';
 import useImage from 'use-image';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Stage, Layer, Image } from 'react-konva';
 
 export default function ScanImage({ currentPath }) {
   const [image, setImage] = useState('https://placehold.co/500x500');
+  const imgPath = currentPath + '/scan.png';
 
   async function scan() {
-    const imgPath = currentPath + '/scan.png';
     await window.electronAPI.scanImage(imgPath);
+  }
+
+  async function scanImageExists() {
+    const exists = await window.electronAPI.fileExists(imgPath);
+    return exists;
+  }
+
+  async function openScanImage() {
     const imgBase64 = await window.electronAPI.openImage(imgPath);
     if (!imgBase64) {
       return;
     }
     setImage('data:image/jpg;base64,' + imgBase64);
   }
+
+  const firstRender = useRef(true);
+
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      if (scanImageExists()) {
+        openScanImage();
+      }
+      return;
+    }
+  });
 
   return (
     <div className="mt-10 mx-10 w-full">
