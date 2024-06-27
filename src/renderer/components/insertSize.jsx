@@ -13,10 +13,15 @@ export default function InsertSize({ currentPath, setCurrentPath }) {
       return;
     }
     setCurrentPath(filePath);
-    updateFolderContent();
+    updateFolderContent(filePath);
   }
 
-  async function updateFolderContent() {
+  async function updateFolderContent(filePath) {
+    readPropertyFile(filePath);
+    readMainImage(filePath);
+  }
+
+  async function readPropertyFile(filePath) {
     const fileContent = await window.electronAPI.readFile(
       filePath + '/properties.txt',
     );
@@ -25,6 +30,9 @@ export default function InsertSize({ currentPath, setCurrentPath }) {
     } else {
       setTextAreaContent(fileContent);
     }
+  }
+
+  async function readMainImage(filePath) {
     const imgPath = filePath + '/main.jpg';
     const imgBase64 = await window.electronAPI.openImage(imgPath);
     if (!imgBase64) {
