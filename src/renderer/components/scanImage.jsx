@@ -30,7 +30,14 @@ export default function ScanImage({ currentPath }) {
   }
 
   async function cropImage() {
-    console.log(sizeRect);
+    await window.electronAPI.cropImage(
+      imgPath,
+      currentPath + '/main.png',
+      sizeRect.x,
+      sizeRect.y,
+      sizeRect.width,
+      sizeRect.height,
+    );
   }
 
   const firstRender = useRef(true);

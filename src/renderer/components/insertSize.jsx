@@ -7,6 +7,8 @@ export default function InsertSize({ currentPath, setCurrentPath }) {
   const [mainImage, setMainImage] = useState('');
   const [contourPoints, setContourPoints] = useState([]);
 
+  const imgPath = currentPath + '/main.png';
+
   async function openFolder() {
     const filePath = await window.electronAPI.openFolder();
     if (!filePath) {
@@ -33,7 +35,6 @@ export default function InsertSize({ currentPath, setCurrentPath }) {
   }
 
   async function readMainImage(filePath) {
-    const imgPath = filePath + '/main.jpg';
     const imgBase64 = await window.electronAPI.openImage(imgPath);
     if (!imgBase64) {
       setMainImage('');
@@ -43,9 +44,7 @@ export default function InsertSize({ currentPath, setCurrentPath }) {
   }
 
   async function analyzeImage() {
-    const points = await window.electronAPI.analyzeImage(
-      currentPath + '/main.jpg',
-    );
+    const points = await window.electronAPI.analyzeImage(imgPath);
     return points;
   }
 

@@ -125,6 +125,15 @@ async function scanImage(event: any, filePath: string) {
   });
 }
 
+async function handleCropImage(event: any, imgPath: string, outPath: string, x: number, y: number, width: number, height: number) {
+  const sharp = require('sharp')
+  sharp(imgPath)
+    .extract({ left: x, top: y, width: width, height: height })
+    .toFile(outPath, function (err: any) {
+        if (err) console.log(err);
+    })
+}
+
 ipcMain.on('ipc-example', async (event, arg) => {
   const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
   console.log(msgTemplate(arg));
@@ -236,6 +245,7 @@ app
     ipcMain.handle('dialog:fileExists', handleFileExists)
     ipcMain.handle('execute:analyzeImage', handleAnalyzeImage)
     ipcMain.handle('execute:scanImage', scanImage)
+    ipcMain.handle('execute:cropImage', handleCropImage)
     createWindow();
     app.on('activate', () => {
       // On macOS it's common to re-create a window in the app when the
