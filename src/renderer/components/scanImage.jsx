@@ -63,8 +63,8 @@ export default function ScanImage({ currentPath }) {
           <label className="block text-white font-bold my-2">Rotation</label>
           <input
             type="number"
-            min="-90"
-            max="90"
+            min="-180"
+            max="180"
             value={imgRotation}
             onChange={(e) => setImgRotation(parseInt(e.target.value))}
             className="pl-2 h-10 rounded-md font-bold"
@@ -86,14 +86,7 @@ function ImageCrop({ image, rotation, setSizeRect }) {
   const sizeTransformer = useRef(null);
 
   const imgSize = [508, 699];
-  const offsetX = Math.max(
-    parseInt(Math.cos(((90 - rotation) / 180) * Math.PI) * imgSize[1] * 5),
-    0,
-  );
-  const offsetY = Math.max(
-    parseInt(Math.cos(((-90 - rotation) / 180) * Math.PI) * imgSize[0] * 5),
-    0,
-  );
+  const [offsetX, offsetY] = getOffset(imgSize, rotation);
 
   useEffect(() => {
     if (sizeRect.current && sizeTransformer.current) {
@@ -165,4 +158,44 @@ function ImageCrop({ image, rotation, setSizeRect }) {
       )}
     </div>
   );
+}
+
+function getOffset(imgSize, rotation) {
+  var offsetX = 0;
+  var offsetY = 0;
+  if (rotation >= -90 && rotation <= 90) {
+    offsetX = Math.max(
+      parseInt(Math.cos(((90 - rotation) / 180) * Math.PI) * imgSize[1] * 5),
+      0,
+    );
+    offsetY = Math.max(
+      parseInt(Math.cos(((-90 - rotation) / 180) * Math.PI) * imgSize[0] * 5),
+      0,
+    );
+  } else if (rotation > 90) {
+    offsetX = Math.max(
+      parseInt(
+        Math.sin(((rotation - 90) / 180) * Math.PI) * imgSize[0] * 5 +
+          Math.cos(((rotation - 90) / 180) * Math.PI) * imgSize[1] * 5,
+      ),
+      0,
+    );
+    offsetY = Math.max(
+      parseInt(Math.sin(((rotation - 90) / 180) * Math.PI) * imgSize[1] * 5),
+      0,
+    );
+  } else {
+    offsetX = Math.max(
+      parseInt(-Math.sin(((90 + rotation) / 180) * Math.PI) * imgSize[0] * 5),
+      0,
+    );
+    offsetY = Math.max(
+      parseInt(
+        -Math.sin(((90 + rotation) / 180) * Math.PI) * imgSize[1] * 5 +
+          Math.cos(((90 + rotation) / 180) * Math.PI) * imgSize[0] * 5,
+      ),
+      0,
+    );
+  }
+  return [offsetX, offsetY];
 }
