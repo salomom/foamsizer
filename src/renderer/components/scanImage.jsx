@@ -51,9 +51,9 @@ export default function ScanImage({ currentPath }) {
 function ImageCrop({ image }) {
   const [konvaImage] = useImage(image);
   return (
-    <div>
+    <div className="mt-4">
       {image && (
-        <Stage width={700} height={700}>
+        <Stage width={508} height={699} scaleX={0.2} scaleY={0.2}>
           <Layer>
             <Image image={konvaImage} />
           </Layer>
