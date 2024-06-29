@@ -8,7 +8,11 @@ export default function ScanImage({ currentPath }) {
   const imgPath = currentPath + '/scan.png';
 
   async function scan() {
+    if (await scanImageExists()) {
+      await window.electronAPI.deleteFile(imgPath);
+    }
     await window.electronAPI.scanImage(imgPath);
+    openScanImage();
   }
 
   async function scanImageExists() {
