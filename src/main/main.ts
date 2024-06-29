@@ -125,9 +125,10 @@ async function scanImage(event: any, filePath: string) {
   });
 }
 
-async function handleCropImage(event: any, imgPath: string, outPath: string, x: number, y: number, width: number, height: number) {
+async function handleCropImage(event: any, imgPath: string, outPath: string, x: number, y: number, width: number, height: number, rotation:number) {
   const sharp = require('sharp')
   sharp(imgPath)
+    .rotate(rotation)
     .extract({ left: x, top: y, width: width, height: height })
     .toFile(outPath, function (err: any) {
         if (err) console.log(err);

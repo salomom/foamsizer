@@ -6,6 +6,7 @@ import { Stage, Layer, Image, Rect, Transformer } from 'react-konva';
 export default function ScanImage({ currentPath }) {
   const [image, setImage] = useState('https://placehold.co/500x500');
   const [sizeRect, setSizeRect] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  const [imgRotation, setImgRotation] = useState(0);
   const imgPath = currentPath + '/scan.png';
 
   async function scan() {
@@ -37,6 +38,7 @@ export default function ScanImage({ currentPath }) {
       sizeRect.y,
       sizeRect.width,
       sizeRect.height,
+      imgRotation,
     );
   }
 
@@ -57,16 +59,41 @@ export default function ScanImage({ currentPath }) {
       <div className="flex">
         <Button title="Scan" onClick={scan} big />
         <Button title="Crop" onClick={cropImage} big />
+        <div>
+          <label className="block text-white font-bold my-2">Rotation</label>
+          <input
+            type="number"
+            min="-90"
+            max="90"
+            value={imgRotation}
+            onChange={(e) => setImgRotation(parseInt(e.target.value))}
+            className="pl-2 h-10 rounded-md font-bold"
+          />
+        </div>
       </div>
-      <ImageCrop image={image} setSizeRect={setSizeRect} />
+      <ImageCrop
+        image={image}
+        rotation={imgRotation}
+        setSizeRect={setSizeRect}
+      />
     </div>
   );
 }
 
-function ImageCrop({ image, setSizeRect }) {
+function ImageCrop({ image, rotation, setSizeRect }) {
   const [konvaImage] = useImage(image);
   const sizeRect = useRef(null);
   const sizeTransformer = useRef(null);
+
+  const imgSize = [508, 699];
+  const offsetX = Math.max(
+    parseInt(Math.cos(((90 - rotation) / 180) * Math.PI) * imgSize[1] * 5),
+    0,
+  );
+  const offsetY = Math.max(
+    parseInt(Math.cos(((-90 - rotation) / 180) * Math.PI) * imgSize[0] * 5),
+    0,
+  );
 
   useEffect(() => {
     if (sizeRect.current && sizeTransformer.current) {
@@ -78,9 +105,14 @@ function ImageCrop({ image, setSizeRect }) {
   return (
     <div className="mt-4">
       {image && (
-        <Stage width={508} height={699} scaleX={0.2} scaleY={0.2}>
+        <Stage width={864} height={864} scaleX={0.2} scaleY={0.2}>
           <Layer>
-            <Image image={konvaImage} />
+            <Image
+              image={konvaImage}
+              rotation={rotation}
+              x={offsetX}
+              y={offsetY}
+            />
           </Layer>
           <Layer>
             <Rect
