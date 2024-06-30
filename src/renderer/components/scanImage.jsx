@@ -6,7 +6,7 @@ import { Stage, Layer, Image, Rect, Transformer } from 'react-konva';
 export default function ScanImage({ currentPath, setCurrentPath }) {
   const [image, setImage] = useState('https://placehold.co/500x500');
   const [sizeRect, setSizeRect] = useState({ x: 0, y: 0, width: 0, height: 0 });
-  const [imgRotation, setImgRotation] = useState(0);
+  const [imgRotation, setImgRotation] = useState(0.0);
   const imgPath = currentPath + '/scan.png';
 
   const basePath = 'C:/Users/timal/Desktop/foamsizer/';
@@ -98,8 +98,9 @@ export default function ScanImage({ currentPath, setCurrentPath }) {
               type="number"
               min="-180"
               max="180"
+              step={0.1}
               value={imgRotation}
-              onChange={(e) => setImgRotation(parseInt(e.target.value))}
+              onChange={(e) => setImgRotation(parseFloat(e.target.value))}
               className="pl-2 h-10 rounded-md font-bold"
             />
           </div>
