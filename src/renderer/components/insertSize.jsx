@@ -1,6 +1,6 @@
 import Button from './buttons';
 import ContourAdjuster from './contouradjustment';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 export default function InsertSize({ currentPath, setCurrentPath }) {
   const [textAreaContent, setTextAreaContent] = useState('');
@@ -96,6 +96,18 @@ export default function InsertSize({ currentPath, setCurrentPath }) {
     });
     return points;
   }
+
+  const firstRender = useRef(true);
+
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      if (currentPath) {
+        updateFolderContent(currentPath);
+      }
+      return;
+    }
+  });
 
   return (
     <div>

@@ -9,7 +9,7 @@ export default function ScanImage({ currentPath, setCurrentPath }) {
   const [imgRotation, setImgRotation] = useState(0);
   const imgPath = currentPath + '/scan.png';
 
-  const basePath = 'C:/Users/timal/Desktop/';
+  const basePath = 'C:/Users/timal/Desktop/foamsizer/';
 
   async function scan() {
     if (await scanImageExists()) {
