@@ -1,5 +1,6 @@
 // Disable no-unused-vars, broken for spread args
 /* eslint no-unused-vars: off */
+import { create } from 'domain';
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 
 export type Channels = 'ipc-example';
@@ -31,6 +32,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   deleteFile: (filePath: string) => ipcRenderer.invoke('dialog:deleteFile', filePath),
   fileExists: (filePath: string) => ipcRenderer.invoke('dialog:fileExists', filePath),
   openImage: (imgPath: string) => ipcRenderer.invoke('dialog:openImage', imgPath),
+  createDirectory: (dirPath: string) => ipcRenderer.invoke('dialog:createDirectory', dirPath),
   analyzeImage: (imgPath: string) => ipcRenderer.invoke('execute:analyzeImage', imgPath),
   scanImage: (imgPath: string) => ipcRenderer.invoke('execute:scanImage', imgPath),
   cropImage: (imgPath: string, outPath: string, x: number, y: number, width: number, height: number, rotation: number) => ipcRenderer.invoke('execute:cropImage', imgPath, outPath, x, y, width, height, rotation),

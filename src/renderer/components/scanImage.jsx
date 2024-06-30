@@ -3,11 +3,13 @@ import useImage from 'use-image';
 import { useEffect, useState, useRef } from 'react';
 import { Stage, Layer, Image, Rect, Transformer } from 'react-konva';
 
-export default function ScanImage({ currentPath }) {
+export default function ScanImage({ currentPath, setCurrentPath }) {
   const [image, setImage] = useState('https://placehold.co/500x500');
   const [sizeRect, setSizeRect] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const [imgRotation, setImgRotation] = useState(0);
   const imgPath = currentPath + '/scan.png';
+
+  const basePath = 'C:/Users/timal/Desktop/';
 
   async function scan() {
     if (await scanImageExists()) {
@@ -42,6 +44,21 @@ export default function ScanImage({ currentPath }) {
     );
   }
 
+  async function createNewDirectory() {
+    // Creates a new directory with current timestamp
+    const name = new Date()
+      .toISOString()
+      .replaceAll('-', '')
+      .replaceAll('T', '-')
+      .replaceAll(':', '')
+      .split('.')[0]; // ex: 20240630-115751
+    const newDir = await window.electronAPI.createDirectory(basePath + name);
+    if (!newDir) {
+      return;
+    }
+    setCurrentPath(newDir);
+  }
+
   const firstRender = useRef(true);
 
   useEffect(() => {
@@ -61,6 +78,7 @@ export default function ScanImage({ currentPath }) {
       </div>
       <div className="mx-10 w-full">
         <div className="flex">
+          <Button title="Create Directory" onClick={createNewDirectory} big />
           <Button title="Scan" onClick={scan} big />
           <Button title="Crop" onClick={cropImage} big />
           <div>

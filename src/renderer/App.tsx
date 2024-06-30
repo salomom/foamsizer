@@ -14,12 +14,12 @@ function Main() {
     {
       title: 'Scan',
       icon: <FaArrowsLeftRightToLine/>,
-      element:<ScanImage currentPath={currentPath}/>
+      element: <ScanImage currentPath={currentPath} setCurrentPath={setCurrentPath} />
     },
     {
       title: 'Insert Size',
       icon: <FaArrowsLeftRightToLine/>,
-      element:<InsertSize currentPath={currentPath} setCurrentPath={setCurrentPath} />
+      element: <InsertSize currentPath={currentPath} setCurrentPath={setCurrentPath} />
     },
   ];
   return (

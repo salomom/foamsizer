@@ -79,6 +79,16 @@ async function handleDeleteFile(event:any, filePath: string) {
   }
 }
 
+async function handleCreateDirectory(event:any, dirPath: string) {
+  try {
+    await fs.promises.mkdir(dirPath)
+    return dirPath
+  } catch (error) {
+    console.log(error)
+    return false
+  }
+}
+
 async function handleOpenImage (event:any, imgPath: string) {
   try {
     const base64img = fs.readFileSync(imgPath).toString('base64')
@@ -244,6 +254,7 @@ app
     ipcMain.handle('dialog:deleteFile', handleDeleteFile)
     ipcMain.handle('dialog:openImage', handleOpenImage)
     ipcMain.handle('dialog:fileExists', handleFileExists)
+    ipcMain.handle('dialog:createDirectory', handleCreateDirectory)
     ipcMain.handle('execute:analyzeImage', handleAnalyzeImage)
     ipcMain.handle('execute:scanImage', scanImage)
     ipcMain.handle('execute:cropImage', handleCropImage)
