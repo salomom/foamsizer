@@ -57,6 +57,17 @@ export default function ScanImage({ currentPath, setCurrentPath }) {
       return;
     }
     setCurrentPath(newDir);
+    await createPresetPropertiesFile(newDir);
+  }
+
+  async function createPresetPropertiesFile(directory) {
+    const content = await window.electronAPI.readFile(
+      './templates/properties.txt',
+    );
+    if (!content) {
+      return;
+    }
+    await window.electronAPI.writeFile(directory + '/properties.txt', content);
   }
 
   const firstRender = useRef(true);
