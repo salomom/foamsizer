@@ -98,23 +98,28 @@ export default function InsertSize({ currentPath, setCurrentPath }) {
   }
 
   return (
-    <div className="mt-10 mx-10 w-full">
-      <div className="mb-5 flex">
-        <Button title="Open Folder" big={true} onClick={openFolder} />
+    <div>
+      <div className="text-white font-bold ml-10 my-4">
+        {currentPath || 'No directory selected'}
       </div>
-      <div className="flex">
-        <ContourAdjuster
-          image={mainImage}
-          getContourPoints={() => getContourPoints(currentPath)}
-          getShapes={() => getShapes(currentPath)}
-          saveShapes={saveShapes}
-          saveContourPoints={saveContourPoints}
-        />
-        <PropertiesTable
-          content={textAreaContent}
-          setContent={setTextAreaContent}
-          saveProperties={saveProperties}
-        />
+      <div className="mx-10 w-full">
+        <div className="mb-5 flex">
+          <Button title="Open Folder" big={true} onClick={openFolder} />
+        </div>
+        <div className="flex">
+          <ContourAdjuster
+            image={mainImage}
+            getContourPoints={() => getContourPoints(currentPath)}
+            getShapes={() => getShapes(currentPath)}
+            saveShapes={saveShapes}
+            saveContourPoints={saveContourPoints}
+          />
+          <PropertiesTable
+            content={textAreaContent}
+            setContent={setTextAreaContent}
+            saveProperties={saveProperties}
+          />
+        </div>
       </div>
     </div>
   );

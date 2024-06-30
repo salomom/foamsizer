@@ -55,27 +55,32 @@ export default function ScanImage({ currentPath }) {
   });
 
   return (
-    <div className="mt-10 mx-10 w-full">
-      <div className="flex">
-        <Button title="Scan" onClick={scan} big />
-        <Button title="Crop" onClick={cropImage} big />
-        <div>
-          <label className="block text-white font-bold my-2">Rotation</label>
-          <input
-            type="number"
-            min="-180"
-            max="180"
-            value={imgRotation}
-            onChange={(e) => setImgRotation(parseInt(e.target.value))}
-            className="pl-2 h-10 rounded-md font-bold"
-          />
-        </div>
+    <div>
+      <div className="text-white font-bold ml-10 my-4">
+        {currentPath || 'No directory selected'}
       </div>
-      <ImageCrop
-        image={image}
-        rotation={imgRotation}
-        setSizeRect={setSizeRect}
-      />
+      <div className="mx-10 w-full">
+        <div className="flex">
+          <Button title="Scan" onClick={scan} big />
+          <Button title="Crop" onClick={cropImage} big />
+          <div>
+            <label className="block text-white font-bold my-2">Rotation</label>
+            <input
+              type="number"
+              min="-180"
+              max="180"
+              value={imgRotation}
+              onChange={(e) => setImgRotation(parseInt(e.target.value))}
+              className="pl-2 h-10 rounded-md font-bold"
+            />
+          </div>
+        </div>
+        <ImageCrop
+          image={image}
+          rotation={imgRotation}
+          setSizeRect={setSizeRect}
+        />
+      </div>
     </div>
   );
 }
