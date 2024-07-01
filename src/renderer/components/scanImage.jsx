@@ -56,6 +56,7 @@ export default function ScanImage({ currentPath, setCurrentPath }) {
     if (!newDir) {
       return;
     }
+    setImage('https://placehold.co/500x500');
     setCurrentPath(newDir);
     await createPresetPropertiesFile(newDir);
   }
