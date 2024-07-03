@@ -60,7 +60,6 @@ def fit_circle(points):
     xc, yc, r = result.x
 
     # Calculate start and stop angles
-    print(points[:, 0], points[:, 1])
     start_angle, end_angle = shortest_arc(points, (xc, yc))
 
     # Calculate R^2 value
@@ -143,6 +142,24 @@ def draw_arc(center, radius, start_angle, end_angle):
     ax.plot(x_fit, y_fit, 'g-')
 
 
+def draw_all_arcs(arcs):
+    # if arcs overlap, only draw the larger one
+    clean_arcs = []
+    # Sort the arcs by distance
+    arcs = sorted(arcs, key=lambda x: x['distance'])
+    while len(arcs) > 0:
+        arc = arcs.pop()
+        for remaining in arcs:
+            if (remaining['start'] <= arc['start'] and remaining['end'] >= arc['start']) or (remaining['start'] <= arc['end'] and remaining['end'] >= arc['end']):
+                # Remove the smaller arc
+                arcs.remove(remaining)
+        clean_arcs.append(arc)
+
+    for arc in clean_arcs:
+        draw_arc((arc['xc'], arc['yc']), arc['r'],
+                 arc['start_angle'], arc['end_angle'])
+
+
 # Algorithm
 points = get_points()
 circumference = contour_length(points)
@@ -154,7 +171,7 @@ def algorithm():
     current_index = 0
     segment_size = 0
     arc_segments = []
-    for index in range(len(points)):
+    for index in range(0, len(points)):
         print()
         print("Checking next index")
         if index < current_index:
@@ -173,6 +190,8 @@ def algorithm():
                     else:
                         overflow = current_index + segment_size - len(points)
                         segment_points.append(points[overflow])
+                        segment_size += 1
+                        break  # not implemented yet
             else:
                 if current_index + segment_size < len(points):
                     segment_points.append(points[current_index + segment_size])
@@ -180,6 +199,8 @@ def algorithm():
                 else:
                     overflow = current_index + segment_size - len(points)
                     segment_points.append(points[overflow])
+                    segment_size += 1
+                    break  # not implemented yet
             # There are now atleast 4 points with a minimum length of arc_length_threshold
             segment_points_np = np.array(segment_points)
             xc, yc, r, start_angle, end_angle, r_squared = fit_circle(
@@ -190,7 +211,11 @@ def algorithm():
             y_fit = yc + r * np.sin(np.deg2rad(theta))
             main_plot()
             ax.plot(*points[current_index], 'go')
-            ax.plot(*points[current_index+segment_size-1], 'go')
+            if current_index + segment_size - 1 < len(points):
+                ax.plot(*points[current_index+segment_size-1], 'go')
+            else:
+                overflow = current_index + segment_size - len(points)
+                ax.plot(*points[overflow], 'go')
             yield lambda: ax.plot(x_fit, y_fit, 'g-')
             # If the arc is valid, add it to the list of arc segments and try to fit more points
             if abs(r_squared) < arc_deviation_threshold:
@@ -199,13 +224,13 @@ def algorithm():
                     if arc_segments[-1]['start'] == current_index:
                         arc_segments.pop()
                 arc_segments.append(
-                    {'start': current_index, 'end': current_index + segment_size, 'xc': xc, 'yc': yc, 'r': r, 'start_angle': start_angle, 'end_angle': end_angle})
+                    {'start': current_index, 'end': current_index + segment_size-1, 'xc': xc, 'yc': yc, 'r': r, 'start_angle': start_angle, 'end_angle': end_angle, 'distance': point_distance(points[current_index], points[current_index + segment_size - 1])})
                 continue
             # If the arc is invalid, go to the next point
             else:
                 print("Arc larger than threshold")
                 if len(arc_segments) > 0:
-                    if arc_segments[-1]['start'] == current_index:
+                    if arc_segments[-1]['start'] == current_index and False:
                         current_index = arc_segments[-1]['end']
                     else:
                         current_index += 1
@@ -230,9 +255,7 @@ def callback(event):
     except StopIteration as e:
         print("End of algorithm")
         main_plot()
-        for arc in e.value:
-            draw_arc((arc['xc'], arc['yc']), arc['r'],
-                     arc['start_angle'], arc['end_angle'])
+        draw_all_arcs(e.value)
     plt.draw()
 
 
