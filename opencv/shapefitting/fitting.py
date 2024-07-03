@@ -142,7 +142,7 @@ def draw_arc(center, radius, start_angle, end_angle):
     ax.plot(x_fit, y_fit, 'g-')
 
 
-def draw_all_arcs(arcs):
+def filter_arcs(arcs):
     # if arcs overlap, only draw the larger one
     clean_arcs = []
     # Sort the arcs by distance
@@ -154,8 +154,11 @@ def draw_all_arcs(arcs):
                 # Remove the smaller arc
                 arcs.remove(remaining)
         clean_arcs.append(arc)
+    return clean_arcs
 
-    for arc in clean_arcs:
+
+def draw_all_arcs(arcs):
+    for arc in arcs:
         draw_arc((arc['xc'], arc['yc']), arc['r'],
                  arc['start_angle'], arc['end_angle'])
 
@@ -238,7 +241,7 @@ def algorithm():
                     current_index += 1
                 segment_size = 0
                 break
-    return arc_segments
+    return filter_arcs(arc_segments)
 
 
 # Plot Setup
