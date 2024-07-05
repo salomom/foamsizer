@@ -170,7 +170,7 @@ arc_length_threshold = 0.1 * circumference
 arc_deviation_threshold = 100
 
 
-def algorithm():
+def find_arcs():
     current_index = 0
     segment_size = 0
     arc_segments = []
@@ -212,14 +212,6 @@ def algorithm():
             theta = points_between_angles(start_angle, end_angle, 10)
             x_fit = xc + r * np.cos(np.deg2rad(theta))
             y_fit = yc + r * np.sin(np.deg2rad(theta))
-            main_plot()
-            ax.plot(*points[current_index], 'go')
-            if current_index + segment_size - 1 < len(points):
-                ax.plot(*points[current_index+segment_size-1], 'go')
-            else:
-                overflow = current_index + segment_size - len(points)
-                ax.plot(*points[overflow], 'go')
-            yield lambda: ax.plot(x_fit, y_fit, 'g-')
             # If the arc is valid, add it to the list of arc segments and try to fit more points
             if abs(r_squared) < arc_deviation_threshold:
                 print("Arc smaller than threshold")
@@ -244,21 +236,108 @@ def algorithm():
     return filter_arcs(arc_segments)
 
 
+def get_non_arc_points(arcs, points):
+    # Get all points that are not within an arc
+    non_arc_points = []
+    all_points = points.copy()
+    # Add index to each point
+    for i, point in enumerate(all_points):
+        all_points[i] = (point[0], point[1], i)
+    index = 0
+    # Sort the arcs by start index
+    arcs = sorted(arcs, key=lambda x: x['start'])
+    for arc in arcs:
+        if index < arc['start']:
+            non_arc_points.append(all_points[index:arc['start'] + 1])
+        index = arc['end']
+    if index < len(points):
+        non_arc_points.append(all_points[index:])
+    return non_arc_points
+
+
+def calc_line_deviation(line, points):
+    # Calculate the deviation of a line from a set of points
+    if len(points) <= 2:
+        return 0
+    x1, y1, x2, y2 = line
+    deviations = []
+    for point in points:
+        x0, y0, index = point
+        deviation = np.abs((y2-y1)*x0 - (x2-x1)*y0 + x2*y1 -
+                           y2*x1) / np.sqrt((y2-y1)**2 + (x2-x1)**2)
+        deviations.append(deviation)
+    return np.mean(deviations)
+
+
+def filter_lines(lines):
+    # If lines overlap, only draw the larger one
+    clean_lines = []
+    # Sort the lines by length
+    lines = sorted(lines, key=lambda x: x['length'])
+    while len(lines) > 0:
+        line = lines.pop()
+        for remaining in lines[:]:
+            if (remaining['start'][2] <= line['start'][2] and remaining['end'][2] > line['start'][2]) or \
+               (remaining['start'][2] < line['start'][2] and remaining['end'][2] >= line['end'][2]) or \
+               (remaining['start'][2] >= line['start'][2] and remaining['end'][2] < line['end'][2]) or \
+               (remaining['start'][2] > line['start'][2] and remaining['end'][2] <= line['end'][2]):
+                # Remove the smaller line
+                lines.remove(remaining)
+        clean_lines.append(line)
+    return clean_lines
+
+
+def find_lines(points, arcs):
+    line_deviation_threshold = 500
+    available_points = get_non_arc_points(arcs, points)
+    # Find straight lines between arcs
+    lines = []
+    for point_group in available_points:
+        segment_size = 1
+        for i in range(len(point_group) - 1):
+            segment = point_group[i: i + segment_size+1]
+            start_point = segment[0]
+            end_point = segment[-1]
+            deviation = calc_line_deviation(
+                (start_point[0], start_point[1], end_point[0], end_point[1]), segment)
+            while deviation < line_deviation_threshold:
+                if i + segment_size < len(point_group):
+                    segment_size += 1
+                    segment = point_group[i: i + segment_size+1]
+                    deviation = calc_line_deviation(
+                        (start_point[0], start_point[1], end_point[0], end_point[1]), segment)
+                else:
+                    break
+            lines.append({'start': start_point, 'end': end_point, 'deviation': deviation,
+                          'length': point_distance(start_point, end_point)})
+    return filter_lines(lines)
+
+
+def draw_line(line):
+    x_fit = [line['start'][0], line['end'][0]]
+    y_fit = [line['start'][1], line['end'][1]]
+    ax.plot(x_fit, y_fit, 'b-')
+
+
+def draw_all_lines(lines):
+    for line in lines:
+        draw_line(line)
+
+
 # Plot Setup
 main_image = plt.imread('main.png')
 fig, ax = plt.subplots()
 plt.subplots_adjust(bottom=0.2)
 main_plot()
-al = algorithm()
+plt.draw()
 
 
 def callback(event):
-    try:
-        next(al)()
-    except StopIteration as e:
-        print("End of algorithm")
-        main_plot()
-        draw_all_arcs(e.value)
+    arcs = find_arcs()
+    lines = find_lines(points, arcs)
+    main_plot()
+    draw_all_arcs(arcs)
+    draw_all_lines(lines)
     plt.draw()
 
 
