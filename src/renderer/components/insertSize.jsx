@@ -45,7 +45,11 @@ export default function InsertSize({ currentPath, setCurrentPath }) {
 
   async function analyzeImage() {
     const points = await window.electronAPI.analyzeImage(imgPath);
-    return points;
+    var adjusted_points = [];
+    points.forEach((point) => {
+      adjusted_points.push([point[0] / 1.1811, point[1] / 1.1811]);
+    });
+    return adjusted_points;
   }
 
   async function getContourPoints(filePath) {

@@ -298,8 +298,8 @@ export default function ContourAdjuster({
         <Layer>
           <Image
             image={konvaImage}
-            height={konvaImage?.naturalHeight}
-            width={konvaImage?.naturalWidth}
+            height={konvaImage?.naturalHeight / 1.1811}
+            width={konvaImage?.naturalWidth / 1.1811}
           />
           <Line
             points={contourPoints.flat()}
