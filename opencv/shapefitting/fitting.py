@@ -67,7 +67,7 @@ def fit_circle(points):
     ss_res = np.sum(residuals**2)
     ss_tot = np.sum((calc_R(xc, yc) - np.mean(calc_R(xc, yc)))**2)
     r_squared = 1 - (ss_res / ss_tot)
-    print("Deviation: ", ss_res)
+    # print("Deviation: ", ss_res)
     return xc, yc, r, start_angle, end_angle, ss_res
 
 
@@ -175,12 +175,9 @@ def find_arcs():
     segment_size = 0
     arc_segments = []
     for index in range(0, len(points)):
-        print()
-        print("Checking next index")
         if index < current_index:
             continue
         for i in points[current_index:]:
-            print("Adding point")
             if segment_size < 4:
                 segment_points = get_points_for_min_length(
                     points[current_index:], arc_length_threshold)
@@ -214,7 +211,7 @@ def find_arcs():
             y_fit = yc + r * np.sin(np.deg2rad(theta))
             # If the arc is valid, add it to the list of arc segments and try to fit more points
             if abs(r_squared) < arc_deviation_threshold:
-                print("Arc smaller than threshold")
+                # print("Arc smaller than threshold")
                 if len(arc_segments) > 0:
                     if arc_segments[-1]['start'] == current_index:
                         arc_segments.pop()
@@ -223,7 +220,7 @@ def find_arcs():
                 continue
             # If the arc is invalid, go to the next point
             else:
-                print("Arc larger than threshold")
+                # print("Arc larger than threshold")
                 if len(arc_segments) > 0:
                     if arc_segments[-1]['start'] == current_index and False:
                         current_index = arc_segments[-1]['end']
@@ -293,19 +290,23 @@ def find_lines(points, arcs):
     # Find straight lines between arcs
     lines = []
     for point_group in available_points:
-        segment_size = 1
         for i in range(len(point_group) - 1):
+            segment_size = 1
             segment = point_group[i: i + segment_size+1]
             start_point = segment[0]
             end_point = segment[-1]
             deviation = calc_line_deviation(
                 (start_point[0], start_point[1], end_point[0], end_point[1]), segment)
             while deviation < line_deviation_threshold:
+                lines.append({'start': start_point, 'end': end_point, 'deviation': deviation,
+                              'length': point_distance(start_point, end_point)})
                 if i + segment_size < len(point_group):
                     segment_size += 1
                     segment = point_group[i: i + segment_size+1]
+                    end_point = segment[-1]
                     deviation = calc_line_deviation(
                         (start_point[0], start_point[1], end_point[0], end_point[1]), segment)
+                    print(start_point[2], end_point[2], deviation)
                 else:
                     break
             lines.append({'start': start_point, 'end': end_point, 'deviation': deviation,
@@ -324,24 +325,23 @@ def draw_all_lines(lines):
         draw_line(line)
 
 
-# Plot Setup
-main_image = plt.imread('main.png')
-fig, ax = plt.subplots()
-plt.subplots_adjust(bottom=0.2)
-main_plot()
-plt.draw()
-
-
-def callback(event):
-    arcs = find_arcs()
-    lines = find_lines(points, arcs)
+if __name__ == '__main__':
+    # Plot Setup
+    main_image = plt.imread('main.png')
+    fig, ax = plt.subplots()
+    plt.subplots_adjust(bottom=0.2)
     main_plot()
-    draw_all_arcs(arcs)
-    draw_all_lines(lines)
     plt.draw()
 
+    def callback(event):
+        arcs = find_arcs()
+        lines = find_lines(points, arcs)
+        main_plot()
+        draw_all_arcs(arcs)
+        draw_all_lines(lines)
+        plt.draw()
 
-axnext = fig.add_axes([0.7, 0.05, 0.1, 0.075])
-bnext = Button(axnext, 'Next')
-bnext.on_clicked(callback)
-plt.show()
+    axnext = fig.add_axes([0.7, 0.05, 0.1, 0.075])
+    bnext = Button(axnext, 'Next')
+    bnext.on_clicked(callback)
+    plt.show()
