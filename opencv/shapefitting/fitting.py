@@ -285,7 +285,7 @@ def filter_lines(lines):
 
 
 def find_lines(points, arcs):
-    line_deviation_threshold = 500
+    line_deviation_threshold = 10
     available_points = get_non_arc_points(arcs, points)
     # Find straight lines between arcs
     lines = []
@@ -297,6 +297,8 @@ def find_lines(points, arcs):
             end_point = segment[-1]
             deviation = calc_line_deviation(
                 (start_point[0], start_point[1], end_point[0], end_point[1]), segment)
+            lines.append({'start': start_point, 'end': end_point, 'deviation': deviation,
+                          'length': point_distance(start_point, end_point)})
             while deviation < line_deviation_threshold:
                 lines.append({'start': start_point, 'end': end_point, 'deviation': deviation,
                               'length': point_distance(start_point, end_point)})
@@ -309,8 +311,6 @@ def find_lines(points, arcs):
                     print(start_point[2], end_point[2], deviation)
                 else:
                     break
-            lines.append({'start': start_point, 'end': end_point, 'deviation': deviation,
-                          'length': point_distance(start_point, end_point)})
     return filter_lines(lines)
 
 
