@@ -67,7 +67,6 @@ def fit_circle(points):
     ss_res = np.sum(residuals**2)
     ss_tot = np.sum((calc_R(xc, yc) - np.mean(calc_R(xc, yc)))**2)
     r_squared = 1 - (ss_res / ss_tot)
-    # print("Deviation: ", ss_res)
     return xc, yc, r, start_angle, end_angle, ss_res
 
 
@@ -211,7 +210,6 @@ def find_arcs():
             y_fit = yc + r * np.sin(np.deg2rad(theta))
             # If the arc is valid, add it to the list of arc segments and try to fit more points
             if abs(r_squared) < arc_deviation_threshold:
-                # print("Arc smaller than threshold")
                 if len(arc_segments) > 0:
                     if arc_segments[-1]['start'] == current_index:
                         arc_segments.pop()
@@ -220,7 +218,6 @@ def find_arcs():
                 continue
             # If the arc is invalid, go to the next point
             else:
-                # print("Arc larger than threshold")
                 if len(arc_segments) > 0:
                     if arc_segments[-1]['start'] == current_index and False:
                         current_index = arc_segments[-1]['end']
@@ -308,7 +305,6 @@ def find_lines(points, arcs):
                     end_point = segment[-1]
                     deviation = calc_line_deviation(
                         (start_point[0], start_point[1], end_point[0], end_point[1]), segment)
-                    print(start_point[2], end_point[2], deviation)
                 else:
                     break
     return filter_lines(lines)
