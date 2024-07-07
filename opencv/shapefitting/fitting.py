@@ -3,13 +3,14 @@ import numpy as np
 import json
 import scipy.optimize as optimize
 import shapely
+import sys
 from matplotlib.widgets import Button
+from functools import partial
 
 
-def get_points():
-    offset = 0
+def get_points(path, offset=0):
     points = []
-    with open('contour.txt', 'r') as file:
+    with open(path + '/contour.txt', 'r') as file:
         for line in file:
             x, y = line.strip().split(',')
             points.append((float(x), float(y)))
@@ -143,7 +144,8 @@ def angle_direction(start_angle, end_angle, start_point, end_point, center_point
 
 def main_plot():
     ax.clear()
-    ax.imshow(main_image)
+    height, width = main_image.shape[:2]
+    ax.imshow(main_image, extent=[0, width/1.1811, height/1.1811, 0])
     # First point in blue
     ax.plot(*points[0], 'bo')
     ax.plot(*zip(*points[1:]), 'ro')
@@ -177,14 +179,11 @@ def draw_all_arcs(arcs):
                  arc['start_angle'], arc['end_angle'])
 
 
-# Algorithm
-points = get_points()
-circumference = contour_length(points)
-arc_length_threshold = 0.1 * circumference
-arc_deviation_threshold = 300
+def arc_length(arc):
+    return arc['r'] * np.deg2rad(np.abs(arc['end_angle'] - arc['start_angle']))
 
 
-def find_arcs():
+def find_arcs(arc_length_threshold, arc_deviation_threshold):
     current_index = 0
     segment_size = 0
     arc_segments = []
@@ -218,11 +217,14 @@ def find_arcs():
                     break  # not implemented yet
             # There are now atleast 4 points with a minimum length of arc_length_threshold
             segment_points_np = np.array(segment_points)
+            # Get largest distance between points
+            max_distance = np.max(np.linalg.norm(
+                segment_points_np - np.roll(segment_points_np, 1, axis=0), axis=1))
             # Fit a circle to the segment points
             xc, yc, r, start_angle, end_angle, r_squared = fit_circle(
                 segment_points_np)
             # If the arc is valid, add it to the list of arc segments and try to fit more points
-            if abs(r_squared) < arc_deviation_threshold:
+            if abs(r_squared) < arc_deviation_threshold and arc_length({'r': r, 'start_angle': start_angle, 'end_angle': end_angle}) < max_distance * 2:
                 # Delete shorter arcs that overlap with the current arc
                 # if len(arc_segments) > 0:
                 #     if arc_segments[-1]['start'] == current_index:
@@ -289,8 +291,7 @@ def filter_lines(lines):
     return clean_lines
 
 
-def find_lines(points, arcs):
-    line_deviation_threshold = 10
+def find_lines(points, arcs, line_deviation_threshold):
     available_points = get_non_arc_points(arcs, points)
     # Find straight lines between arcs
     lines = []
@@ -329,7 +330,7 @@ def draw_all_lines(lines):
         draw_line(line)
 
 
-def lines_to_file(lines, arcs, points):
+def lines_to_file(path, lines, arcs, points):
     curves = {'points': [], 'arcs': [], 'lines': []}
     for point in points:
         curves['points'].append(
@@ -344,29 +345,49 @@ def lines_to_file(lines, arcs, points):
         curves['lines'].append(
             {'start': int(line['start'][2]),
              'end': int(line['end'][2])})
-    with open('curves.json', 'w') as file:
+    with open(path + '/curves.json', 'w') as file:
         file.write(json.dumps(curves))
 
 
-if __name__ == '__main__':
-    # Plot Setup
-    main_image = plt.imread('main.png')
-    fig, ax = plt.subplots()
-    plt.subplots_adjust(bottom=0.2)
-    main_plot()
-    plt.draw()
-
-    def callback(event):
-        arcs = find_arcs()
-        lines = find_lines(points, arcs)
+def callback(event, draw=True, points=[], arc_length_threshold=0, arc_deviation_threshold=0, line_deviation_threshold=0):
+    arcs = find_arcs(arc_length_threshold, arc_deviation_threshold)
+    lines = find_lines(points, arcs, line_deviation_threshold)
+    if draw:
         main_plot()
-
         draw_all_arcs(arcs)
         draw_all_lines(lines)
-        plt.draw()
-        lines_to_file(lines, arcs, points)
+    plt.draw()
+    lines_to_file(path, lines, arcs, points)
 
-    axnext = fig.add_axes([0.7, 0.05, 0.1, 0.075])
-    bnext = Button(axnext, 'Next')
-    bnext.on_clicked(callback)
-    plt.show()
+
+if __name__ == '__main__':
+    # Get command line args
+    path = sys.argv[1]
+    offset = int(sys.argv[2])
+    if len(sys.argv) > 3:
+        draw = True
+    else:
+        draw = False
+
+    # Algorithm
+    points = get_points(path, offset)
+    circumference = contour_length(points)
+    arc_length_threshold = 0.1 * circumference
+    arc_deviation_threshold = 100
+    line_deviation_threshold = 5
+    callback_args = partial(callback, draw=True, points=points, arc_length_threshold=arc_length_threshold,
+                            arc_deviation_threshold=arc_deviation_threshold, line_deviation_threshold=line_deviation_threshold)
+    # Plot Setup
+    if draw:
+        main_image = plt.imread(path + '/main.png')
+        fig, ax = plt.subplots()
+        plt.subplots_adjust(bottom=0.2)
+        main_plot()
+        plt.draw()
+        axnext = fig.add_axes([0.7, 0.05, 0.1, 0.075])
+        bnext = Button(axnext, 'Next')
+        bnext.on_clicked(callback_args)
+        plt.show()
+    else:
+        callback(event=None, draw=False, points=points, arc_length_threshold=arc_length_threshold,
+                 arc_deviation_threshold=arc_deviation_threshold, line_deviation_threshold=line_deviation_threshold)
