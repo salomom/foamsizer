@@ -123,6 +123,17 @@ async function handleAnalyzeImage (event:any, imgPath: string) {
   });
 }
 
+async function handleContourFitting(event:any, filePath: string) {
+  return new Promise((resolve, reject) => {
+    const offset = 20;
+    const pyProg = spawn('python', ['./opencv/shapefitting/fitting.py', filePath, offset]);
+    pyProg.on('close', function(code:any) {
+      console.log('Process terminated with code:', code);
+      resolve(true);
+    });
+  });
+};
+
 async function scanImage(event: any, filePath: string) {
   // Uses flatbed scanner to scan image to file
   return new Promise((resolve, reject) => {
@@ -258,6 +269,7 @@ app
     ipcMain.handle('execute:analyzeImage', handleAnalyzeImage)
     ipcMain.handle('execute:scanImage', scanImage)
     ipcMain.handle('execute:cropImage', handleCropImage)
+    ipcMain.handle('execute:contourFitting', handleContourFitting)
     createWindow();
     app.on('activate', () => {
       // On macOS it's common to re-create a window in the app when the

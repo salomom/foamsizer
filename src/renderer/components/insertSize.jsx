@@ -91,6 +91,7 @@ export default function InsertSize({ currentPath, setCurrentPath }) {
 
   async function saveContourPoints(points) {
     await window.electronAPI.writeFile(currentPath + '/contour.txt', points);
+    fitContour();
   }
 
   function parseContourFile(content) {
@@ -103,6 +104,10 @@ export default function InsertSize({ currentPath, setCurrentPath }) {
       (point) => !isNaN(point[0]) && !isNaN(point[1]),
     );
     return points_filtered;
+  }
+
+  async function fitContour() {
+    await window.electronAPI.contourFitting(currentPath);
   }
 
   const firstRender = useRef(true);

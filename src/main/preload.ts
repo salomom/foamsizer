@@ -36,6 +36,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   analyzeImage: (imgPath: string) => ipcRenderer.invoke('execute:analyzeImage', imgPath),
   scanImage: (imgPath: string) => ipcRenderer.invoke('execute:scanImage', imgPath),
   cropImage: (imgPath: string, outPath: string, x: number, y: number, width: number, height: number, rotation: number) => ipcRenderer.invoke('execute:cropImage', imgPath, outPath, x, y, width, height, rotation),
+  contourFitting: (filePath: string) => ipcRenderer.invoke('execute:contourFitting', filePath),
 })
 
 contextBridge.exposeInMainWorld('electron', electronHandler);
