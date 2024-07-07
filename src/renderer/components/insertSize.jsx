@@ -5,7 +5,6 @@ import { useState, useRef, useEffect } from 'react';
 export default function InsertSize({ currentPath, setCurrentPath }) {
   const [textAreaContent, setTextAreaContent] = useState('');
   const [mainImage, setMainImage] = useState('');
-  const [contourPoints, setContourPoints] = useState([]);
   const [symmetryLine, setSymmetryLine] = useState(-1);
 
   const imgPath = currentPath + '/main.png';
@@ -113,8 +112,7 @@ export default function InsertSize({ currentPath, setCurrentPath }) {
 
   async function getSymmetryLine() {
     const line = await window.electronAPI.findSymmetryLine(currentPath);
-    console.log(line);
-    setSymmetryLine(parseInt(line));
+    setSymmetryLine(parseInt(line / 1.1811));
   }
 
   const firstRender = useRef(true);

@@ -16,12 +16,12 @@ export default function Contour({ points, setPoints }) {
                 ? [parseInt(event.target.x()), parseInt(event.target.y())]
                 : p,
             );
-            setPoints(newPoints);
+            setPoints(newPoints, index);
           }}
           onContextMenu={(event) => {
             event.evt.preventDefault();
             const newPoints = points.filter((p, i) => i !== index);
-            setPoints(newPoints);
+            setPoints(newPoints, -1);
           }}
         />
       ))}

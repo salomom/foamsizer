@@ -161,12 +161,26 @@ export default function ContourAdjuster({
         break;
       }
     }
-    const newContourPoints = [
-      ...contourPoints.slice(0, nearest[0] + 1),
-      [x, y],
-      ...contourPoints.slice(nearest[1]),
-    ];
-    setContourPoints(newContourPoints);
+    var newContourPoints = [];
+    if (symmetryLine === -1) {
+      newContourPoints = [
+        ...contourPoints.slice(0, nearest[0] + 1),
+        [x, y],
+        ...contourPoints.slice(nearest[1]),
+      ];
+      setContourPoints(newContourPoints);
+    } else {
+      const oppositeIndex = contourPoints.length - 1 - nearest[0];
+      const [ox, oy] = oppositePoint([x, y], symmetryLine);
+      newContourPoints = [
+        ...contourPoints.slice(0, nearest[0] + 1),
+        [x, y],
+        ...contourPoints.slice(nearest[1], oppositeIndex),
+        [ox, oy],
+        ...contourPoints.slice(oppositeIndex),
+      ];
+      setContourPoints(newContourPoints);
+    }
     setCreatePointActive(false);
   }
 
@@ -186,6 +200,47 @@ export default function ContourAdjuster({
     if (clickedOnEmpty) {
       setSelectedShape(-1);
     }
+  }
+
+  function oppositePoint(point, symmetryLine) {
+    const [x, y] = point;
+    return [2 * symmetryLine - x, y];
+  }
+
+  function makeContourSymmetric(asymContourPoints) {
+    const newContourPoints = asymContourPoints.map((point) => {
+      const [x, y] = point;
+      if (x > symmetryLine) {
+        return;
+      }
+      return [x, y];
+    });
+    const firstHalf = newContourPoints.filter((point) => point !== undefined);
+    var secondHalf = [];
+    for (let i = 0; i < firstHalf.length; i++) {
+      const [x, y] = firstHalf[i];
+      secondHalf.push(oppositePoint([x, y], symmetryLine));
+    }
+    setContourPoints(firstHalf.concat(secondHalf.reverse()));
+  }
+
+  function moveContourPoints(newPoints, movedIndex) {
+    if (symmetryLine === -1) {
+      setContourPoints(newPoints);
+      return;
+    }
+    if (movedIndex === -1) {
+      // A point was removed
+      makeContourSymmetric(newPoints);
+      return;
+    }
+    const numPoints = contourPoints.length;
+    var oppositeIndex = numPoints - 1 - movedIndex;
+    const [x, y] = newPoints[movedIndex];
+    const [ox, oy] = oppositePoint([x, y], symmetryLine);
+    const newPointsOpposite = [...newPoints];
+    newPointsOpposite[oppositeIndex] = [ox, oy];
+    setContourPoints(newPointsOpposite);
   }
 
   useHotkeys(
@@ -270,6 +325,12 @@ export default function ContourAdjuster({
     getShapes().then(setPlacedShapes);
   }, [image]);
 
+  useEffect(() => {
+    if (symmetryLine !== -1) {
+      makeContourSymmetric(contourPoints);
+    }
+  }, [symmetryLine]);
+
   return (
     <div className="w-[70%] h-[80%] bg-slate-700 mr-20 rounded-md">
       <ButtonBar
@@ -311,9 +372,9 @@ export default function ContourAdjuster({
           {symmetryLine !== -1 && (
             <Line
               points={[
-                symmetryLine / 1.1811,
+                symmetryLine,
                 0,
-                symmetryLine / 1.1811,
+                symmetryLine,
                 konvaImage?.naturalHeight / 1.1811,
               ]}
               stroke={'blue'}
@@ -332,7 +393,7 @@ export default function ContourAdjuster({
               }}
             />
           ))}
-          <Contour points={contourPoints} setPoints={setContourPoints} />
+          <Contour points={contourPoints} setPoints={moveContourPoints} />
         </Layer>
       </Stage>
     </div>
