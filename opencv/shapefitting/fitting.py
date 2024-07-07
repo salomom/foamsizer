@@ -2,16 +2,20 @@ import matplotlib.pyplot as plt
 import numpy as np
 import json
 import scipy.optimize as optimize
+import shapely
 from matplotlib.widgets import Button
 
 
 def get_points():
+    offset = 0
     points = []
     with open('contour.txt', 'r') as file:
         for line in file:
             x, y = line.strip().split(',')
             points.append((float(x), float(y)))
-    return points
+    # Offset points
+    polygon_shape = shapely.geometry.Polygon(points)
+    return shapely.get_coordinates(polygon_shape.buffer(offset).simplify(20)).tolist()
 
 
 def point_distance(p1, p2):
@@ -160,7 +164,7 @@ def filter_arcs(arcs):
     while len(arcs) > 0:
         arc = arcs.pop()
         for remaining in arcs[:]:
-            if (remaining['start'] <= arc['start'] and remaining['end'] >= arc['start']) or (remaining['start'] <= arc['end'] and remaining['end'] >= arc['end']):
+            if (remaining['start'] <= arc['start'] and remaining['end'] > arc['start']) or (remaining['start'] < arc['end'] and remaining['end'] >= arc['end']):
                 # Remove the smaller arc
                 arcs.remove(remaining)
         clean_arcs.append(arc)
@@ -177,7 +181,7 @@ def draw_all_arcs(arcs):
 points = get_points()
 circumference = contour_length(points)
 arc_length_threshold = 0.1 * circumference
-arc_deviation_threshold = 100
+arc_deviation_threshold = 300
 
 
 def find_arcs():
@@ -188,6 +192,7 @@ def find_arcs():
         if index < current_index:
             continue
         for i in points[current_index:]:
+            # An arc segment should have atleast 4 points
             if segment_size < 4:
                 segment_points = get_points_for_min_length(
                     points[current_index:], arc_length_threshold)
@@ -199,8 +204,8 @@ def find_arcs():
                         segment_size += 1
                     else:
                         overflow = current_index + segment_size - len(points)
-                        segment_points.append(points[overflow])
-                        segment_size += 1
+                        # segment_points.append(points[overflow])
+                        # segment_size += 1
                         break  # not implemented yet
             else:
                 if current_index + segment_size < len(points):
@@ -208,22 +213,20 @@ def find_arcs():
                     segment_size += 1
                 else:
                     overflow = current_index + segment_size - len(points)
-                    segment_points.append(points[overflow])
-                    segment_size += 1
+                    # segment_points.append(points[overflow])
+                    # segment_size += 1
                     break  # not implemented yet
             # There are now atleast 4 points with a minimum length of arc_length_threshold
             segment_points_np = np.array(segment_points)
+            # Fit a circle to the segment points
             xc, yc, r, start_angle, end_angle, r_squared = fit_circle(
                 segment_points_np)
-            # Plot the points and the fitted circle
-            theta = points_between_angles(start_angle, end_angle, 10)
-            x_fit = xc + r * np.cos(np.deg2rad(theta))
-            y_fit = yc + r * np.sin(np.deg2rad(theta))
             # If the arc is valid, add it to the list of arc segments and try to fit more points
             if abs(r_squared) < arc_deviation_threshold:
-                if len(arc_segments) > 0:
-                    if arc_segments[-1]['start'] == current_index:
-                        arc_segments.pop()
+                # Delete shorter arcs that overlap with the current arc
+                # if len(arc_segments) > 0:
+                #     if arc_segments[-1]['start'] == current_index:
+                #         arc_segments.pop()
                 arc_segments.append(
                     {'start': current_index, 'end': current_index + segment_size-1, 'xc': xc, 'yc': yc, 'r': r,
                      'start_angle': start_angle, 'end_angle': end_angle, 'distance': point_distance(points[current_index], points[current_index + segment_size - 1]),
@@ -231,13 +234,7 @@ def find_arcs():
                 continue
             # If the arc is invalid, go to the next point
             else:
-                if len(arc_segments) > 0:
-                    if arc_segments[-1]['start'] == current_index and False:
-                        current_index = arc_segments[-1]['end']
-                    else:
-                        current_index += 1
-                else:
-                    current_index += 1
+                current_index += 1
                 segment_size = 0
                 break
     return filter_arcs(arc_segments)
@@ -285,9 +282,7 @@ def filter_lines(lines):
         line = lines.pop()
         for remaining in lines[:]:
             if (remaining['start'][2] <= line['start'][2] and remaining['end'][2] > line['start'][2]) or \
-               (remaining['start'][2] < line['start'][2] and remaining['end'][2] >= line['end'][2]) or \
-               (remaining['start'][2] >= line['start'][2] and remaining['end'][2] < line['end'][2]) or \
-               (remaining['start'][2] > line['start'][2] and remaining['end'][2] <= line['end'][2]):
+               (remaining['start'][2] >= line['start'][2] and remaining['start'][2] < line['end'][2]):
                 # Remove the smaller line
                 lines.remove(remaining)
         clean_lines.append(line)
