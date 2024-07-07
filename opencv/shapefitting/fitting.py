@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import json
 import scipy.optimize as optimize
 from matplotlib.widgets import Button
 
@@ -126,6 +127,16 @@ def points_between_angles(start_angle, end_angle, amount):
     return np.array(angles)
 
 
+def angle_direction(start_angle, end_angle, start_point, end_point, center_point):
+    # Check if start_angle is near the start_point or the end_point
+    start_point_angle = np.abs(np.arctan2(
+        start_point[1] - center_point[1], start_point[0] - center_point[0]))
+    start_point_angle = np.rad2deg(start_point_angle)
+    if np.abs(np.abs(start_point_angle) - np.abs(start_angle)) < np.abs(np.abs(start_point_angle) - np.abs(end_angle)):
+        return "cw"
+    return "ccw"
+
+
 def main_plot():
     ax.clear()
     ax.imshow(main_image)
@@ -148,7 +159,7 @@ def filter_arcs(arcs):
     arcs = sorted(arcs, key=lambda x: x['distance'])
     while len(arcs) > 0:
         arc = arcs.pop()
-        for remaining in arcs:
+        for remaining in arcs[:]:
             if (remaining['start'] <= arc['start'] and remaining['end'] >= arc['start']) or (remaining['start'] <= arc['end'] and remaining['end'] >= arc['end']):
                 # Remove the smaller arc
                 arcs.remove(remaining)
@@ -214,7 +225,9 @@ def find_arcs():
                     if arc_segments[-1]['start'] == current_index:
                         arc_segments.pop()
                 arc_segments.append(
-                    {'start': current_index, 'end': current_index + segment_size-1, 'xc': xc, 'yc': yc, 'r': r, 'start_angle': start_angle, 'end_angle': end_angle, 'distance': point_distance(points[current_index], points[current_index + segment_size - 1])})
+                    {'start': current_index, 'end': current_index + segment_size-1, 'xc': xc, 'yc': yc, 'r': r,
+                     'start_angle': start_angle, 'end_angle': end_angle, 'distance': point_distance(points[current_index], points[current_index + segment_size - 1]),
+                     'start_point': points[current_index], 'end_point': points[current_index + segment_size - 1]})
                 continue
             # If the arc is invalid, go to the next point
             else:
@@ -321,6 +334,25 @@ def draw_all_lines(lines):
         draw_line(line)
 
 
+def lines_to_file(lines, arcs, points):
+    curves = {'points': [], 'arcs': [], 'lines': []}
+    for point in points:
+        curves['points'].append(
+            {'x': point[0], 'y': point[1]})
+    for arc in arcs:
+        curves['arcs'].append(
+            {'start': int(arc['start']),
+             'end': int(arc['end']),
+             'xc': float(arc['xc']), 'yc': float(arc['yc']),
+             'r': float(arc['r']), 'start_angle': float(arc['start_angle']), 'end_angle': float(arc['end_angle'])})
+    for line in lines:
+        curves['lines'].append(
+            {'start': int(line['start'][2]),
+             'end': int(line['end'][2])})
+    with open('curves.json', 'w') as file:
+        file.write(json.dumps(curves))
+
+
 if __name__ == '__main__':
     # Plot Setup
     main_image = plt.imread('main.png')
@@ -333,9 +365,11 @@ if __name__ == '__main__':
         arcs = find_arcs()
         lines = find_lines(points, arcs)
         main_plot()
+
         draw_all_arcs(arcs)
         draw_all_lines(lines)
         plt.draw()
+        lines_to_file(lines, arcs, points)
 
     axnext = fig.add_axes([0.7, 0.05, 0.1, 0.075])
     bnext = Button(axnext, 'Next')
