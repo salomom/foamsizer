@@ -19,6 +19,7 @@ export default function ContourAdjuster({
   getShapes,
   saveShapes,
   saveContourPoints,
+  symmetryLine,
 }) {
   const [placedShapes, setPlacedShapes] = useState([]);
   const [selectedShape, setSelectedShape] = useState(-1);
@@ -307,6 +308,18 @@ export default function ContourAdjuster({
             strokeWidth={5}
             closed
           />
+          {symmetryLine !== -1 && (
+            <Line
+              points={[
+                symmetryLine / 1.1811,
+                0,
+                symmetryLine / 1.1811,
+                konvaImage?.naturalHeight / 1.1811,
+              ]}
+              stroke={'blue'}
+              strokeWidth={2}
+            />
+          )}
           {placedShapes.map((shape, i) => (
             <PlacedShape
               key={shape.key}

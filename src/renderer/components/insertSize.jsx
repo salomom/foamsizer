@@ -6,6 +6,7 @@ export default function InsertSize({ currentPath, setCurrentPath }) {
   const [textAreaContent, setTextAreaContent] = useState('');
   const [mainImage, setMainImage] = useState('');
   const [contourPoints, setContourPoints] = useState([]);
+  const [symmetryLine, setSymmetryLine] = useState(-1);
 
   const imgPath = currentPath + '/main.png';
 
@@ -110,6 +111,12 @@ export default function InsertSize({ currentPath, setCurrentPath }) {
     await window.electronAPI.contourFitting(currentPath);
   }
 
+  async function getSymmetryLine() {
+    const line = await window.electronAPI.findSymmetryLine(currentPath);
+    console.log(line);
+    setSymmetryLine(parseInt(line));
+  }
+
   const firstRender = useRef(true);
 
   useEffect(() => {
@@ -130,6 +137,7 @@ export default function InsertSize({ currentPath, setCurrentPath }) {
       <div className="mx-10 w-full">
         <div className="mb-5 flex">
           <Button title="Open Folder" big={true} onClick={openFolder} />
+          <Button title="Symmetry" big={true} onClick={getSymmetryLine} />
         </div>
         <div className="flex">
           <ContourAdjuster
@@ -138,6 +146,7 @@ export default function InsertSize({ currentPath, setCurrentPath }) {
             getShapes={() => getShapes(currentPath)}
             saveShapes={saveShapes}
             saveContourPoints={saveContourPoints}
+            symmetryLine={symmetryLine}
           />
           <PropertiesTable
             content={textAreaContent}
