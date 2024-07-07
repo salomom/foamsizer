@@ -98,7 +98,11 @@ export default function InsertSize({ currentPath, setCurrentPath }) {
       const [x, y] = point.split(',');
       return [parseInt(x), parseInt(y)];
     });
-    return points;
+    // Filter out NaN values
+    const points_filtered = points.filter(
+      (point) => !isNaN(point[0]) && !isNaN(point[1]),
+    );
+    return points_filtered;
   }
 
   const firstRender = useRef(true);
