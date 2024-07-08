@@ -126,7 +126,7 @@ async function handleAnalyzeImage (event:any, imgPath: string) {
 async function handleContourFitting(event:any, filePath: string) {
   return new Promise((resolve, reject) => {
     const offset = 20;
-    const pyProg = spawn('python', ['./opencv/shapefitting/fitting.py', filePath, offset]);
+    const pyProg = spawn('python', ['./opencv/shapefitting/fitting.py', filePath, offset, true]);
     pyProg.on('close', function(code:any) {
       console.log('Process terminated with code:', code);
       resolve(true);
