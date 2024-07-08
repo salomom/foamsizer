@@ -227,7 +227,7 @@ def find_arcs(arc_length_threshold, arc_deviation_threshold):
             xc, yc, r, start_angle, end_angle, r_squared = fit_circle(
                 segment_points_np)
             # If the arc is valid, add it to the list of arc segments and try to fit more points
-            if abs(r_squared) < arc_deviation_threshold and arc_length({'r': r, 'start_angle': start_angle, 'end_angle': end_angle}) < max_distance * 2:
+            if abs(r_squared) < arc_deviation_threshold and arc_length({'r': r, 'start_angle': start_angle, 'end_angle': end_angle}) < max_distance * 1.2:
                 # Delete shorter arcs that overlap with the current arc
                 # if len(arc_segments) > 0:
                 #     if arc_segments[-1]['start'] == current_index:
