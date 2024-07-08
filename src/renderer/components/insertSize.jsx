@@ -133,9 +133,22 @@ export default function InsertSize({ currentPath, setCurrentPath }) {
         {currentPath || 'No directory selected'}
       </div>
       <div className="mx-10 w-full">
-        <div className="mb-5 flex">
+        <div className="mb-5 flex items-center">
           <Button title="Open Folder" big={true} onClick={openFolder} />
-          <Button title="Symmetry" big={true} onClick={getSymmetryLine} />
+          <label className="text-white font-bold text-lg">
+            <input
+              type="checkbox"
+              className="m-2 h-8 w-8"
+              onChange={(e) => {
+                if (e.target.checked) {
+                  getSymmetryLine();
+                } else {
+                  setSymmetryLine(-1);
+                }
+              }}
+            />
+            Symmetry Line
+          </label>
         </div>
         <div className="flex">
           <ContourAdjuster
