@@ -221,13 +221,14 @@ def find_arcs(arc_length_threshold, arc_deviation_threshold):
             # There are now atleast 4 points with a minimum length of arc_length_threshold
             segment_points_np = np.array(segment_points)
             # Get largest distance between points
-            max_distance = np.max(np.linalg.norm(
-                segment_points_np - np.roll(segment_points_np, 1, axis=0), axis=1))
+            point_distances = np.linalg.norm(
+                segment_points_np - np.roll(segment_points_np, 1, axis=0), axis=1)
+            max_distance = np.sum(point_distances) - np.max(point_distances)
             # Fit a circle to the segment points
             xc, yc, r, start_angle, end_angle, r_squared = fit_circle(
                 segment_points_np)
             # If the arc is valid, add it to the list of arc segments and try to fit more points
-            if abs(r_squared) < arc_deviation_threshold and arc_length({'r': r, 'start_angle': start_angle, 'end_angle': end_angle}) < max_distance * 1.2:
+            if abs(r_squared) < arc_deviation_threshold and arc_length({'r': r, 'start_angle': start_angle, 'end_angle': end_angle}) < max_distance * 1.05 and r < 5000:
                 # Delete shorter arcs that overlap with the current arc
                 # if len(arc_segments) > 0:
                 #     if arc_segments[-1]['start'] == current_index:
