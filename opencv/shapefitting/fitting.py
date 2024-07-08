@@ -15,8 +15,10 @@ def get_points(path, offset=0):
             x, y = line.strip().split(',')
             points.append((float(x), float(y)))
     # Offset points
-    polygon_shape = shapely.geometry.Polygon(points)
-    return shapely.get_coordinates(polygon_shape.buffer(offset).simplify(20)).tolist()
+    if offset != 0:
+        polygon_shape = shapely.geometry.Polygon(points)
+        return shapely.get_coordinates(polygon_shape.buffer(offset).simplify(2)).tolist()
+    return points
 
 
 def point_distance(p1, p2):
@@ -166,7 +168,8 @@ def filter_arcs(arcs):
     while len(arcs) > 0:
         arc = arcs.pop()
         for remaining in arcs[:]:
-            if (remaining['start'] <= arc['start'] and remaining['end'] > arc['start']) or (remaining['start'] < arc['end'] and remaining['end'] >= arc['end']):
+            if (remaining['start'] <= arc['start'] and remaining['end'] > arc['start']) or \
+                    (remaining['start'] < arc['end'] and remaining['start'] >= arc['start']):
                 # Remove the smaller arc
                 arcs.remove(remaining)
         clean_arcs.append(arc)
