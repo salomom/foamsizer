@@ -3,6 +3,7 @@ import { Route, MemoryRouter as Router, Routes } from 'react-router-dom';
 import './App.css';
 import Sidebar from './components/sidebar';
 import InsertSize from './components/insertSize';
+import EditTools from './components/editTools';
 import ScanImage from './components/scanImage';
 import { FaArrowsLeftRightToLine } from "react-icons/fa6";
 
@@ -21,6 +22,11 @@ function Main() {
       icon: <FaArrowsLeftRightToLine/>,
       element: <InsertSize currentPath={currentPath} setCurrentPath={setCurrentPath} />
     },
+    {
+      title: 'Edit Tools',
+      icon: <FaArrowsLeftRightToLine/>,
+      element: <EditTools currentPath={currentPath} setCurrentPath={setCurrentPath} />
+    }
   ];
   return (
     <div className="flex bg-slate-900">
