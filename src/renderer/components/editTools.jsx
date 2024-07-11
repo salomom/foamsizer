@@ -118,13 +118,16 @@ export default function EditTools({ currentPath, setCurrentPath }) {
         </div>
       </div>
       <div className="mx-10">
-        {mainImage && (
-          <OverlayCoverImage
-            mainImage={mainImage}
-            coverImage={coverImage}
-            contourPoints={contourPoints}
-          />
-        )}
+        <div className="flex justify-center">
+          {mainImage && (
+            <OverlayCoverImage
+              mainImage={mainImage}
+              coverImage={coverImage}
+              contourPoints={contourPoints}
+            />
+          )}
+          {properties && <PropertiesTable properties={properties} />}
+        </div>
       </div>
     </div>
   );
@@ -176,13 +179,33 @@ function OverlayCoverImage({ mainImage, coverImage, contourPoints }) {
               image={konvaCoverImage}
               height={konvaCoverImage?.naturalHeight * imageScale}
               width={konvaCoverImage?.naturalWidth * imageScale}
-              opacity={0.5}
+              opacity={0.7}
               draggable
             />
-            <Transformer ref={sizeTransformerRef} />
+            <Transformer
+              ref={sizeTransformerRef}
+              rotationSnaps={[0, 90, 180, 270]}
+            />
           </>
         )}
       </Layer>
     </Stage>
+  );
+}
+
+function PropertiesTable({ properties }) {
+  return (
+    <div className="w-1/2">
+      <table className="table-auto">
+        <tbody>
+          {Object.entries(properties).map(([key, value]) => (
+            <tr key={key} className="text-white">
+              <td className="border px-4 py-2">{key}</td>
+              <td className="border px-4 py-2">{value}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
