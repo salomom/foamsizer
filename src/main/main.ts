@@ -37,6 +37,15 @@ async function handleFolderOpen () {
   }
 }
 
+async function handleFileOpen () {
+  const { canceled, filePaths } = await dialog.showOpenDialog({
+    properties: ['openFile']
+  })
+  if (!canceled) {
+    return filePaths[0]
+  }
+}
+
 async function handleFileExists (event:any, filePath: string) {
   try {
     const exists = await fs.promises.access(filePath, fs.constants.F_OK)
@@ -274,6 +283,7 @@ app
   .whenReady()
   .then(() => {
     ipcMain.handle('dialog:openFolder', handleFolderOpen)
+    ipcMain.handle('dialog:openFile', handleFileOpen)
     ipcMain.handle('dialog:readFile', handleReadFile)
     ipcMain.handle('dialog:writeFile', handleWriteFile)
     ipcMain.handle('dialog:deleteFile', handleDeleteFile)
