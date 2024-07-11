@@ -1,12 +1,13 @@
 import Button from './buttons';
 import { useState, useRef, useEffect } from 'react';
-import { Stage, Layer, Image } from 'react-konva';
+import { Stage, Layer, Image, Line } from 'react-konva';
 import useImage from 'use-image';
 
 export default function EditTools({ currentPath, setCurrentPath }) {
   const [coverImage, setCoverImage] = useState('');
   const [mainImage, setMainImage] = useState('');
   const [properties, setProperties] = useState('');
+  const [contourPoints, setContourPoints] = useState([]);
 
   async function openFile() {
     const filePath = await window.electronAPI.openFile();
@@ -68,6 +69,30 @@ export default function EditTools({ currentPath, setCurrentPath }) {
     setMainImage('data:image/jpg;base64,' + imgBase64);
   }
 
+  async function getContourPoints(filePath) {
+    const contourFileContent = await window.electronAPI.readFile(
+      filePath + '/contour.txt',
+    );
+    if (!contourFileContent) {
+      return;
+    }
+    const points = parseContourFile(contourFileContent);
+    console.log(points.flat());
+    setContourPoints(points.flat());
+  }
+
+  function parseContourFile(content) {
+    const points = content.split('\n').map((point) => {
+      const [x, y] = point.split(',');
+      return [parseInt(x), parseInt(y)];
+    });
+    // Filter out NaN values
+    const points_filtered = points.filter(
+      (point) => !isNaN(point[0]) && !isNaN(point[1]),
+    );
+    return points_filtered;
+  }
+
   const firstRender = useRef(true);
 
   useEffect(() => {
@@ -76,6 +101,7 @@ export default function EditTools({ currentPath, setCurrentPath }) {
       if (currentPath) {
         readMainImage(currentPath);
         readPropertyFile(currentPath);
+        getContourPoints(currentPath);
       }
       return;
     }
@@ -92,13 +118,19 @@ export default function EditTools({ currentPath, setCurrentPath }) {
         </div>
       </div>
       <div className="mx-10">
-        <OverlayCoverImage mainImage={mainImage} coverImage={coverImage} />
+        {mainImage && (
+          <OverlayCoverImage
+            mainImage={mainImage}
+            coverImage={coverImage}
+            contourPoints={contourPoints}
+          />
+        )}
       </div>
     </div>
   );
 }
 
-function OverlayCoverImage({ mainImage, coverImage }) {
+function OverlayCoverImage({ mainImage, coverImage, contourPoints }) {
   const [konvaMainImage] = useImage(mainImage);
   const [konvaCoverImage] = useImage(coverImage);
 
@@ -119,6 +151,14 @@ function OverlayCoverImage({ mainImage, coverImage }) {
             width={konvaMainImage?.naturalWidth * imageScale}
           />
         )}
+        <Line
+          points={contourPoints}
+          stroke="red"
+          strokeWidth={4}
+          scaleX={imageScale * 1.1811}
+          scaleY={imageScale * 1.1811}
+          closed
+        />
         {konvaCoverImage && (
           <Image
             image={konvaCoverImage}
