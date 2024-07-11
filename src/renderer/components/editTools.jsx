@@ -92,9 +92,7 @@ export default function EditTools({ currentPath, setCurrentPath }) {
         </div>
       </div>
       <div className="mx-10">
-        {coverImage && (
-          <OverlayCoverImage mainImage={mainImage} coverImage={coverImage} />
-        )}
+        <OverlayCoverImage mainImage={mainImage} coverImage={coverImage} />
       </div>
     </div>
   );
@@ -103,11 +101,33 @@ export default function EditTools({ currentPath, setCurrentPath }) {
 function OverlayCoverImage({ mainImage, coverImage }) {
   const [konvaMainImage] = useImage(mainImage);
   const [konvaCoverImage] = useImage(coverImage);
+
+  const stageHeight = 700;
+  const stageWidth = 900;
+  const imageScale = Math.min(
+    stageWidth / konvaMainImage?.naturalWidth,
+    stageHeight / konvaMainImage?.naturalHeight,
+  );
+
   return (
-    <Stage width={500} height={500}>
+    <Stage width={stageHeight} height={stageWidth}>
       <Layer>
-        <Image image={konvaMainImage} height={500} width={500} />
-        <Image image={konvaCoverImage} height={500} width={500} opacity={0.5} />
+        {konvaMainImage && (
+          <Image
+            image={konvaMainImage}
+            height={konvaMainImage?.naturalHeight * imageScale}
+            width={konvaMainImage?.naturalWidth * imageScale}
+          />
+        )}
+        {konvaCoverImage && (
+          <Image
+            image={konvaCoverImage}
+            height={konvaCoverImage?.naturalHeight * imageScale}
+            width={konvaCoverImage?.naturalWidth * imageScale}
+            opacity={0.5}
+            draggable
+          />
+        )}
       </Layer>
     </Stage>
   );
