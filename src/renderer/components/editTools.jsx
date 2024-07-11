@@ -1,7 +1,7 @@
-import Button from './buttons';
-import { useState, useRef, useEffect } from 'react';
-import { Stage, Layer, Image, Line } from 'react-konva';
+import { useEffect, useRef, useState } from 'react';
+import { Image, Layer, Line, Stage, Transformer } from 'react-konva';
 import useImage from 'use-image';
+import Button from './buttons';
 
 export default function EditTools({ currentPath, setCurrentPath }) {
   const [coverImage, setCoverImage] = useState('');
@@ -141,6 +141,16 @@ function OverlayCoverImage({ mainImage, coverImage, contourPoints }) {
     stageHeight / konvaMainImage?.naturalHeight,
   );
 
+  const sizeTransformerRef = useRef(null);
+  const coverImageRef = useRef(null);
+
+  useEffect(() => {
+    if (coverImageRef.current && sizeTransformerRef.current) {
+      sizeTransformerRef.current.nodes([coverImageRef.current]);
+      sizeTransformerRef.current.getLayer().batchDraw();
+    }
+  });
+
   return (
     <Stage width={stageHeight} height={stageWidth}>
       <Layer>
@@ -160,13 +170,17 @@ function OverlayCoverImage({ mainImage, coverImage, contourPoints }) {
           closed
         />
         {konvaCoverImage && (
-          <Image
-            image={konvaCoverImage}
-            height={konvaCoverImage?.naturalHeight * imageScale}
-            width={konvaCoverImage?.naturalWidth * imageScale}
-            opacity={0.5}
-            draggable
-          />
+          <>
+            <Image
+              ref={coverImageRef}
+              image={konvaCoverImage}
+              height={konvaCoverImage?.naturalHeight * imageScale}
+              width={konvaCoverImage?.naturalWidth * imageScale}
+              opacity={0.5}
+              draggable
+            />
+            <Transformer ref={sizeTransformerRef} />
+          </>
         )}
       </Layer>
     </Stage>
