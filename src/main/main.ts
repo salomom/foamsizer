@@ -179,6 +179,16 @@ async function handleCropImage(event: any, imgPath: string, outPath: string, x: 
     })
 }
 
+async function handleResizeImage(event:any, imgPath: string, outPath:string, width: number, height: number, rotation: number) {
+  const sharp = require('sharp')
+  sharp(imgPath)
+    .rotate(rotation)
+    .resize(width, height, {fit: "fill"})
+    .toFile(outPath, function (err: any) {
+        if (err) console.log(err);
+    })
+}
+
 ipcMain.on('ipc-example', async (event, arg) => {
   const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
   console.log(msgTemplate(arg));
@@ -293,6 +303,7 @@ app
     ipcMain.handle('execute:analyzeImage', handleAnalyzeImage)
     ipcMain.handle('execute:scanImage', scanImage)
     ipcMain.handle('execute:cropImage', handleCropImage)
+    ipcMain.handle('execute:resizeImage', handleResizeImage)
     ipcMain.handle('execute:contourFitting', handleContourFitting)
     ipcMain.handle('execute:findSymmetryLine', handleFindSymmetryLine)
     createWindow();
