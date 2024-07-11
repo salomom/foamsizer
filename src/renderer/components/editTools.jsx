@@ -8,6 +8,9 @@ export default function EditTools({ currentPath, setCurrentPath }) {
   const [mainImage, setMainImage] = useState('');
   const [properties, setProperties] = useState('');
   const [contourPoints, setContourPoints] = useState([]);
+  const [coverImagePath, setCoverImagePath] = useState('');
+  const [coverImageProps, setCoverImageProps] = useState(null);
+  const [mainImageProps, setMainImageProps] = useState(null);
 
   async function openFile() {
     const filePath = await window.electronAPI.openFile();
@@ -19,11 +22,13 @@ export default function EditTools({ currentPath, setCurrentPath }) {
 
   async function readCoverImage(filePath) {
     const imgBase64 = await window.electronAPI.openImage(filePath);
+    setCoverImagePath(filePath);
     if (!imgBase64) {
       setCoverImage('');
       return;
     }
     setCoverImage('data:image/jpg;base64,' + imgBase64);
+    setCoverImageProps(null);
   }
 
   async function openCoverImage() {
@@ -77,7 +82,6 @@ export default function EditTools({ currentPath, setCurrentPath }) {
       return;
     }
     const points = parseContourFile(contourFileContent);
-    console.log(points.flat());
     setContourPoints(points.flat());
   }
 
@@ -91,6 +95,42 @@ export default function EditTools({ currentPath, setCurrentPath }) {
       (point) => !isNaN(point[0]) && !isNaN(point[1]),
     );
     return points_filtered;
+  }
+
+  async function saveCoverImage() {
+    if (!currentPath) {
+      alert('Please open a folder first');
+      return;
+    }
+    const folderName = currentPath.split('\\').at(-1);
+    const coverName = '/' + folderName + '.png';
+    const newCoverPath = currentPath + coverName;
+    await window.electronAPI.resizeImage(
+      coverImagePath,
+      newCoverPath,
+      parseInt(coverImageProps.width),
+      parseInt(coverImageProps.height),
+      parseInt(coverImageProps.rotation),
+    );
+  }
+
+  async function cropCoverImage() {
+    if (!currentPath) {
+      alert('Please open a folder first');
+      return;
+    }
+    const folderName = currentPath.split('\\').at(-1);
+    const coverName = '/' + folderName + '.png';
+    const newCoverPath = currentPath + coverName;
+    await window.electronAPI.cropImage(
+      newCoverPath,
+      currentPath + '/sus.png',
+      parseInt(-coverImageProps.x),
+      parseInt(-coverImageProps.y),
+      mainImageProps.width,
+      mainImageProps.height,
+      0,
+    );
   }
 
   const firstRender = useRef(true);
@@ -115,6 +155,8 @@ export default function EditTools({ currentPath, setCurrentPath }) {
       <div className="mx-10 w-full">
         <div className="mb-5 flex items-center">
           <Button title="Select Cover" big={true} onClick={openCoverImage} />
+          <Button title="Save Cover" big={true} onClick={saveCoverImage} />
+          <Button title="Crop Cover" big={true} onClick={cropCoverImage} />
         </div>
       </div>
       <div className="mx-10">
@@ -122,7 +164,11 @@ export default function EditTools({ currentPath, setCurrentPath }) {
           {mainImage && (
             <OverlayCoverImage
               mainImage={mainImage}
+              mainImageProps={mainImageProps}
+              setMainImageProps={setMainImageProps}
               coverImage={coverImage}
+              coverImageProps={coverImageProps}
+              setCoverImageProps={setCoverImageProps}
               contourPoints={contourPoints}
             />
           )}
@@ -133,9 +179,17 @@ export default function EditTools({ currentPath, setCurrentPath }) {
   );
 }
 
-function OverlayCoverImage({ mainImage, coverImage, contourPoints }) {
-  const [konvaMainImage] = useImage(mainImage);
-  const [konvaCoverImage] = useImage(coverImage);
+function OverlayCoverImage({
+  mainImage,
+  mainImageProps,
+  setMainImageProps,
+  coverImage,
+  coverImageProps,
+  setCoverImageProps,
+  contourPoints,
+}) {
+  const [konvaMainImage, konvaMainImageStatus] = useImage(mainImage);
+  const [konvaCoverImage, konvaCoverImageStatus] = useImage(coverImage);
 
   const stageHeight = 700;
   const stageWidth = 900;
@@ -148,6 +202,32 @@ function OverlayCoverImage({ mainImage, coverImage, contourPoints }) {
   const coverImageRef = useRef(null);
 
   useEffect(() => {
+    if (!coverImageProps && konvaCoverImageStatus === 'loaded') {
+      const props = {
+        x: 0,
+        y: 0,
+        width: konvaCoverImage.naturalWidth,
+        height: konvaCoverImage.naturalHeight,
+        rotation: 0,
+      };
+      setCoverImageProps(props);
+    }
+  }, [konvaCoverImageStatus]);
+
+  useEffect(() => {
+    if (!mainImageProps && konvaMainImageStatus === 'loaded') {
+      const props = {
+        x: 0,
+        y: 0,
+        width: konvaMainImage.naturalWidth,
+        height: konvaMainImage.naturalHeight,
+        rotation: 0,
+      };
+      setMainImageProps(props);
+    }
+  }, [konvaMainImageStatus]);
+
+  useEffect(() => {
     if (coverImageRef.current && sizeTransformerRef.current) {
       sizeTransformerRef.current.nodes([coverImageRef.current]);
       sizeTransformerRef.current.getLayer().batchDraw();
@@ -157,30 +237,60 @@ function OverlayCoverImage({ mainImage, coverImage, contourPoints }) {
   return (
     <Stage width={stageHeight} height={stageWidth}>
       <Layer>
-        {konvaMainImage && (
-          <Image
-            image={konvaMainImage}
-            height={konvaMainImage?.naturalHeight * imageScale}
-            width={konvaMainImage?.naturalWidth * imageScale}
-          />
+        {konvaMainImage && mainImageProps && (
+          <>
+            <Image
+              image={konvaMainImage}
+              x={mainImageProps.x}
+              y={mainImageProps.y}
+              height={mainImageProps.height * imageScale}
+              width={mainImageProps.width * imageScale}
+            />
+            <Line
+              points={contourPoints}
+              stroke="red"
+              strokeWidth={4}
+              scaleX={imageScale * 1.1811}
+              scaleY={imageScale * 1.1811}
+              closed
+            />
+          </>
         )}
-        <Line
-          points={contourPoints}
-          stroke="red"
-          strokeWidth={4}
-          scaleX={imageScale * 1.1811}
-          scaleY={imageScale * 1.1811}
-          closed
-        />
-        {konvaCoverImage && (
+        {konvaCoverImage && coverImageProps && (
           <>
             <Image
               ref={coverImageRef}
               image={konvaCoverImage}
-              height={konvaCoverImage?.naturalHeight * imageScale}
-              width={konvaCoverImage?.naturalWidth * imageScale}
+              x={coverImageProps?.x}
+              y={coverImageProps?.y}
+              height={coverImageProps?.height * imageScale}
+              width={coverImageProps?.width * imageScale}
+              rotation={coverImageProps?.rotation}
               opacity={0.7}
               draggable
+              onDragEnd={(e) => {
+                const node = coverImageRef.current;
+                setCoverImageProps({
+                  ...coverImageProps,
+                  x: node.x(),
+                  y: node.y(),
+                });
+              }}
+              onTransformEnd={(e) => {
+                const node = coverImageRef.current;
+                const scaleX = node.scaleX();
+                const scaleY = node.scaleY();
+                node.scaleX(1);
+                node.scaleY(1);
+                setCoverImageProps({
+                  ...coverImageProps,
+                  x: node.x(),
+                  y: node.y(),
+                  rotation: node.rotation(),
+                  width: parseInt((node.width() * scaleX) / imageScale),
+                  height: parseInt((node.height() * scaleY) / imageScale),
+                });
+              }}
             />
             <Transformer
               ref={sizeTransformerRef}
