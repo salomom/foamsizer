@@ -108,8 +108,6 @@ export default function EditTools({ currentPath, setCurrentPath }) {
   }
 
   async function saveCoverImage() {
-    console.log(coverImageRef.current.rotation());
-    return;
     if (!currentPath || !coverImageRef.current) {
       alert('Please open a folder first');
       return;
@@ -118,25 +116,39 @@ export default function EditTools({ currentPath, setCurrentPath }) {
     const coverName = '/' + folderName + '_cover.png';
     const newCoverPath = currentPath + coverName;
     const coverImg = coverImageRef.current;
+    const [fullHeight, fullWidth] = getRotatedSize(
+      coverImg.height() * coverImg.scaleY(),
+      coverImg.width() * coverImg.scaleX(),
+      coverImg.rotation(),
+    );
     await window.electronAPI.resizeImage(
       coverImagePath,
       currentPath + '/resized.png',
-      parseInt((coverImg.width() * coverImg.scaleX()) / imageScale),
-      parseInt((coverImg.height() * coverImg.scaleY()) / imageScale),
-      parseInt(coverImg.rotation()),
+      Math.round(fullWidth / imageScale),
+      Math.round(fullHeight / imageScale),
+      Math.round(coverImg.rotation()),
     );
     setTimeout(() => {
       // Idk why this only works with a delay
+      const [offX, offY] = getOffset(
+        [
+          coverImg.width() * coverImg.scaleX(),
+          coverImg.height() * coverImg.scaleY(),
+        ],
+        coverImg.rotation(),
+      );
+      const adjX = coverImg.x() - offX;
+      const adjY = coverImg.y() - offY;
       window.electronAPI.cropImage(
         currentPath + '/resized.png',
         newCoverPath,
-        parseInt(-coverImg.x() / imageScale),
-        parseInt(-coverImg.y() / imageScale),
+        Math.round(-adjX / imageScale),
+        Math.round(-adjY / imageScale),
         konvaMainImage.naturalWidth,
         konvaMainImage.naturalHeight,
         0,
       );
-    }, 100);
+    }, 300);
   }
 
   function getFolderName() {
@@ -255,21 +267,6 @@ function OverlayCoverImage({
 }) {
   const sizeTransformerRef = useRef(null);
 
-  function getRotatedCoords(x, y, height, width, angle) {
-    if (angle < 0) {
-      angle = 360 + angle;
-    }
-    let newX, newY;
-    const hypotenuse = Math.sqrt((height / 2) ** 2 + (width / 2) ** 2);
-    const angleOffsetX = rad2deg(Math.asin(width / 2 / hypotenuse));
-    const angleOffsetY = angleOffsetX - 90;
-    const offsetX = Math.sin(deg2rad(-angleOffsetX)) * hypotenuse;
-    const offsetY = Math.sin(deg2rad(angleOffsetY)) * hypotenuse;
-    newX = Math.sin(deg2rad(angle - angleOffsetX)) * hypotenuse - offsetX;
-    newY = Math.sin(deg2rad(-angle + angleOffsetY)) * hypotenuse - offsetY;
-    return [newX, newY];
-  }
-
   useEffect(() => {
     if (coverImageRef.current && sizeTransformerRef.current) {
       sizeTransformerRef.current.nodes([coverImageRef.current]);
@@ -306,15 +303,6 @@ function OverlayCoverImage({
               width={coverImage?.naturalWidth * imageScale}
               opacity={0.7}
               draggable
-              onTransformEnd={(e) => {
-                getRotatedCoords(
-                  e.target.x() * e.target.scaleX(),
-                  e.target.y() * e.target.scaleY(),
-                  e.target.height() * e.target.scaleY(),
-                  e.target.width() * e.target.scaleX(),
-                  e.target.rotation(),
-                );
-              }}
             />
             <Transformer
               ref={sizeTransformerRef}
@@ -350,4 +338,64 @@ function rad2deg(rad) {
 
 function deg2rad(deg) {
   return deg * (Math.PI / 180);
+}
+
+function getOffset(imgSize, rotation) {
+  var offsetX = 0;
+  var offsetY = 0;
+  if (rotation >= -90 && rotation <= 90) {
+    offsetX = Math.max(
+      Math.round(Math.cos(deg2rad(90 - rotation)) * imgSize[1]),
+      0,
+    );
+    offsetY = Math.max(
+      Math.round(Math.cos(deg2rad(-90 - rotation)) * imgSize[0]),
+      0,
+    );
+  } else if (rotation > 90) {
+    offsetX = Math.max(
+      Math.round(
+        Math.sin(deg2rad(rotation - 90)) * imgSize[0] +
+          Math.cos(deg2rad(rotation - 90)) * imgSize[1],
+      ),
+      0,
+    );
+    offsetY = Math.max(
+      Math.round(Math.sin(deg2rad(rotation - 90)) * imgSize[1]),
+      0,
+    );
+  } else {
+    offsetX = Math.max(
+      Math.round(-Math.sin(deg2rad(90 + rotation)) * imgSize[0]),
+      0,
+    );
+    offsetY = Math.max(
+      Math.round(
+        -Math.sin(deg2rad(90 + rotation)) * imgSize[1] +
+          Math.cos(deg2rad(90 + rotation)) * imgSize[0],
+      ),
+      0,
+    );
+  }
+  return [offsetX, offsetY];
+}
+
+function getRotatedSize(height, width, angle) {
+  if (angle < 0) {
+    angle = 360 + angle;
+  }
+  const hypotenuse = Math.sqrt((height / 2) ** 2 + (width / 2) ** 2);
+  const angleOffsetX = rad2deg(Math.asin(width / 2 / hypotenuse));
+  const angleOffsetY = angleOffsetX - 90;
+  const offsetX = Math.sin(deg2rad(-angleOffsetX)) * hypotenuse;
+  const offsetY = Math.sin(deg2rad(angleOffsetY)) * hypotenuse;
+  const fullWidth = Math.max(
+    Math.abs(Math.sin(deg2rad(angle - angleOffsetX)) * hypotenuse * 2),
+    Math.abs(Math.sin(deg2rad(angle + angleOffsetX)) * hypotenuse * 2),
+  );
+  const fullHeight = Math.max(
+    Math.abs(Math.sin(deg2rad(-angle + angleOffsetY)) * hypotenuse * 2),
+    Math.abs(Math.sin(deg2rad(-angle - angleOffsetY)) * hypotenuse * 2),
+  );
+  return [fullHeight, fullWidth];
 }
