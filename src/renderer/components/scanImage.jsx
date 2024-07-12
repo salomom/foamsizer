@@ -201,32 +201,32 @@ function getOffset(imgSize, rotation) {
   var offsetY = 0;
   if (rotation >= -90 && rotation <= 90) {
     offsetX = Math.max(
-      parseInt(Math.cos(((90 - rotation) / 180) * Math.PI) * imgSize[1] * 5),
+      Math.round(Math.cos(((90 - rotation) / 180) * Math.PI) * imgSize[1] * 5),
       0,
     );
     offsetY = Math.max(
-      parseInt(Math.cos(((-90 - rotation) / 180) * Math.PI) * imgSize[0] * 5),
+      Math.round(Math.cos(((-90 - rotation) / 180) * Math.PI) * imgSize[0] * 5),
       0,
     );
   } else if (rotation > 90) {
     offsetX = Math.max(
-      parseInt(
+      Math.round(
         Math.sin(((rotation - 90) / 180) * Math.PI) * imgSize[0] * 5 +
           Math.cos(((rotation - 90) / 180) * Math.PI) * imgSize[1] * 5,
       ),
       0,
     );
     offsetY = Math.max(
-      parseInt(Math.sin(((rotation - 90) / 180) * Math.PI) * imgSize[1] * 5),
+      Math.round(Math.sin(((rotation - 90) / 180) * Math.PI) * imgSize[1] * 5),
       0,
     );
   } else {
     offsetX = Math.max(
-      parseInt(-Math.sin(((90 + rotation) / 180) * Math.PI) * imgSize[0] * 5),
+      Math.round(-Math.sin(((90 + rotation) / 180) * Math.PI) * imgSize[0] * 5),
       0,
     );
     offsetY = Math.max(
-      parseInt(
+      Math.round(
         -Math.sin(((90 + rotation) / 180) * Math.PI) * imgSize[1] * 5 +
           Math.cos(((90 + rotation) / 180) * Math.PI) * imgSize[0] * 5,
       ),
