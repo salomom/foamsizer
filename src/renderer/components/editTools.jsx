@@ -146,13 +146,47 @@ export default function EditTools({ currentPath, setCurrentPath }) {
     const result = await window.electronAPI.dbFindOne(query);
     if (result) {
       setExistsInDb(true);
+      return true;
     } else {
       setExistsInDb(false);
+      return false;
     }
   }
 
   async function uploadImage() {
     window.electronAPI.uploadImage(currentPath + '/main.png');
+  }
+
+  async function uploadAll() {
+    // Upload cover image to s3 and properties to db
+    if (!currentPath) {
+      alert('Please open a folder first');
+      return;
+    }
+    const folderName = getFolderName();
+    const coverName = '/' + folderName + '_cover.png';
+    const coverPath = currentPath + coverName;
+    // Check if cover image exists
+    const coverExists = await window.electronAPI.fileExists(coverPath);
+    if (coverExists) {
+      alert('Cover image does not exist');
+      return;
+    }
+    // Check if properties exist in db
+    let exists = existsInDb;
+    if (existsInDb === null) {
+      exists = await findEntryInDB();
+    }
+    // Upload to db
+    const query = { ...properties, internalId: folderName };
+    if (!exists) {
+      window.electronAPI.dbInsertOne(query);
+    } else {
+      const search = { internalId: folderName };
+      window.electronAPI.dbReplaceOne(search, query);
+    }
+    // Upload cover image to s3
+    window.electronAPI.uploadImage(coverPath);
   }
 
   const firstRender = useRef(true);
