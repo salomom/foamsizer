@@ -102,35 +102,30 @@ export default function EditTools({ currentPath, setCurrentPath }) {
       alert('Please open a folder first');
       return;
     }
+    console.log(coverImageProps);
+    console.log(mainImageProps);
     const folderName = currentPath.split('\\').at(-1);
-    const coverName = '/' + folderName + '.png';
+    const coverName = '/' + folderName + '_cover.png';
     const newCoverPath = currentPath + coverName;
     await window.electronAPI.resizeImage(
       coverImagePath,
-      newCoverPath,
+      currentPath + '/resized.png',
       parseInt(coverImageProps.width),
       parseInt(coverImageProps.height),
       parseInt(coverImageProps.rotation),
     );
-  }
-
-  async function cropCoverImage() {
-    if (!currentPath) {
-      alert('Please open a folder first');
-      return;
-    }
-    const folderName = currentPath.split('\\').at(-1);
-    const coverName = '/' + folderName + '.png';
-    const newCoverPath = currentPath + coverName;
-    await window.electronAPI.cropImage(
-      newCoverPath,
-      currentPath + '/sus.png',
-      parseInt(-coverImageProps.x),
-      parseInt(-coverImageProps.y),
-      mainImageProps.width,
-      mainImageProps.height,
-      0,
-    );
+    setTimeout(() => {
+      // Idk why this only works with a delay
+      window.electronAPI.cropImage(
+        currentPath + '/resized.png',
+        newCoverPath,
+        parseInt(-coverImageProps.x),
+        parseInt(-coverImageProps.y),
+        mainImageProps.width,
+        mainImageProps.height,
+        0,
+      );
+    }, 500);
   }
 
   const firstRender = useRef(true);
@@ -156,7 +151,6 @@ export default function EditTools({ currentPath, setCurrentPath }) {
         <div className="mb-5 flex items-center">
           <Button title="Select Cover" big={true} onClick={openCoverImage} />
           <Button title="Save Cover" big={true} onClick={saveCoverImage} />
-          <Button title="Crop Cover" big={true} onClick={cropCoverImage} />
         </div>
       </div>
       <div className="mx-10">
