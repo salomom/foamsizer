@@ -21,9 +21,7 @@ export async function dbFindOne(event:any, query: object) {
   const tools = database.collection('tools');
   let result;
   try {
-    console.log('query', query);
     result = await tools.findOne(query);
-    console.log('result', result);
   } catch (e) {
     console.error(e);
   } finally {
