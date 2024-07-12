@@ -8,13 +8,15 @@
  * When running `npm run build` or `npm run build:main`, this file is compiled to
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
-import path from 'path';
-import { app, BrowserWindow, dialog, shell, ipcMain } from 'electron';
-import { autoUpdater } from 'electron-updater';
+import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron';
 import log from 'electron-log';
+import { autoUpdater } from 'electron-updater';
+import fs from 'fs';
+import path from 'path';
+import { dbFind } from './db';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
-import fs from 'fs';
+
 const spawn = require("child_process").spawn;
 
 
@@ -306,6 +308,7 @@ app
     ipcMain.handle('execute:resizeImage', handleResizeImage)
     ipcMain.handle('execute:contourFitting', handleContourFitting)
     ipcMain.handle('execute:findSymmetryLine', handleFindSymmetryLine)
+    ipcMain.handle('db:find', dbFind)
     createWindow();
     app.on('activate', () => {
       // On macOS it's common to re-create a window in the app when the

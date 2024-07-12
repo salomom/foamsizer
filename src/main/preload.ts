@@ -40,6 +40,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   resizeImage: (imgPath: string, outPath: string, width: number, height: number, rotation: number) => ipcRenderer.invoke('execute:resizeImage', imgPath, outPath, width, height, rotation),
   contourFitting: (filePath: string) => ipcRenderer.invoke('execute:contourFitting', filePath),
   findSymmetryLine: (filePath: string) => ipcRenderer.invoke('execute:findSymmetryLine', filePath),
+  dbFind: () => ipcRenderer.invoke('db:find'),
 })
 
 contextBridge.exposeInMainWorld('electron', electronHandler);

@@ -159,6 +159,7 @@ export default function EditTools({ currentPath, setCurrentPath }) {
         <div className="mb-5 flex items-center">
           <Button title="Select Cover" big={true} onClick={openCoverImage} />
           <Button title="Save Cover" big={true} onClick={saveCoverImage} />
+          <Button title="Upload" big={true} onClick={dbFind} />
         </div>
       </div>
       <div className="mx-10">
@@ -255,4 +256,8 @@ function PropertiesTable({ properties }) {
       </table>
     </div>
   );
+}
+
+async function dbFind() {
+  return window.electronAPI.dbFind();
 }
