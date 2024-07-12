@@ -9,6 +9,7 @@ export default function EditTools({ currentPath, setCurrentPath }) {
   const [properties, setProperties] = useState('');
   const [contourPoints, setContourPoints] = useState([]);
   const [coverImagePath, setCoverImagePath] = useState('');
+  const [existsInDb, setExistsInDb] = useState(null);
 
   const [konvaMainImage, konvaMainImageStatus] = useImage(mainImage);
   const [konvaCoverImage, konvaCoverImageStatus] = useImage(coverImage);
@@ -111,7 +112,7 @@ export default function EditTools({ currentPath, setCurrentPath }) {
       alert('Please open a folder first');
       return;
     }
-    const folderName = currentPath.split('\\').at(-1);
+    const folderName = getFolderName();
     const coverName = '/' + folderName + '_cover.png';
     const newCoverPath = currentPath + coverName;
     const coverImg = coverImageRef.current;
@@ -136,6 +137,20 @@ export default function EditTools({ currentPath, setCurrentPath }) {
     }, 100);
   }
 
+  function getFolderName() {
+    return currentPath.split('\\').at(-1);
+  }
+
+  async function findEntryInDB() {
+    const query = { internalId: getFolderName() };
+    const result = await window.electronAPI.dbFindOne(query);
+    if (result) {
+      setExistsInDb(true);
+    } else {
+      setExistsInDb(false);
+    }
+  }
+
   const firstRender = useRef(true);
 
   useEffect(() => {
@@ -154,12 +169,18 @@ export default function EditTools({ currentPath, setCurrentPath }) {
     <div>
       <div className="text-white font-bold ml-10 my-4">
         {currentPath || 'No directory selected'}
+        {existsInDb !== null &&
+          (existsInDb ? (
+            <span className="text-green-500"> - Exists in DB</span>
+          ) : (
+            <span className="text-red-500"> - Not in DB</span>
+          ))}
       </div>
       <div className="mx-10 w-full">
         <div className="mb-5 flex items-center">
           <Button title="Select Cover" big={true} onClick={openCoverImage} />
           <Button title="Save Cover" big={true} onClick={saveCoverImage} />
-          <Button title="Upload" big={true} onClick={dbFind} />
+          <Button title="Check Exist" big={true} onClick={findEntryInDB} />
         </div>
       </div>
       <div className="mx-10">
@@ -256,10 +277,4 @@ function PropertiesTable({ properties }) {
       </table>
     </div>
   );
-}
-
-async function dbFind() {
-  const query = { name: 'anewtest' };
-  const result = await window.electronAPI.dbFindOne(query);
-  console.log(result);
 }
