@@ -13,7 +13,7 @@ import log from 'electron-log';
 import { autoUpdater } from 'electron-updater';
 import fs from 'fs';
 import path from 'path';
-import { dbFind } from './db';
+import { dbFindOne, dbInsertOne, dbReplaceOne } from './db';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 
@@ -308,7 +308,9 @@ app
     ipcMain.handle('execute:resizeImage', handleResizeImage)
     ipcMain.handle('execute:contourFitting', handleContourFitting)
     ipcMain.handle('execute:findSymmetryLine', handleFindSymmetryLine)
-    ipcMain.handle('db:find', dbFind)
+    ipcMain.handle('db:findOne', dbFindOne)
+    ipcMain.handle('db:insertOne', dbInsertOne)
+    ipcMain.handle('db:replaceOne', dbReplaceOne)
     createWindow();
     app.on('activate', () => {
       // On macOS it's common to re-create a window in the app when the

@@ -3,7 +3,6 @@ const { MongoClient, ServerApiVersion } = require('mongodb');
 const username = encodeURIComponent("mongodbuser");
 const password = encodeURIComponent("CDiamUmIszxyJCdw");
 const uri = `mongodb+srv://${username}:${password}@toolsdb.hqtevxm.mongodb.net/?retryWrites=true&w=majority&appName=ToolsDB`;
-console.log(uri)
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -11,16 +10,41 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   }
 });
+const database = client.db('foamsizer');
+const tools = database.collection('tools');
 
-export async function dbFind() {
+export async function dbFindOne(event:any, query: object) {
+  let result;
   try {
-    // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
-    // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    result = await tools.findOne(query);
+  } catch (e) {
+    console.error(e);
   } finally {
-    // Ensures that the client will close when you finish/error
     await client.close();
+    return result;
+  }
+}
+
+export async function dbInsertOne(event:any, data: object) {
+  let result;
+  try {
+    result = await tools.insertOne(data);
+  } catch (e) {
+    console.error(e);
+  } finally {
+    await client.close();
+    return result;
+  }
+}
+
+export async function dbReplaceOne(event:any, query: object, data: object) {
+  let result;
+  try {
+    result = await tools.replaceOne(query, data);
+  } catch (e) {
+    console.error(e);
+  } finally {
+    await client.close();
+    return result;
   }
 }

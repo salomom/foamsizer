@@ -9,7 +9,7 @@ import { FaArrowsLeftRightToLine } from "react-icons/fa6";
 
 
 function Main() {
-  const [activeTab, setActiveTab] = useState(0);
+  const [activeTab, setActiveTab] = useState(2);
   const [currentPath, setCurrentPath] = useState('');
   const tabs = [
     {

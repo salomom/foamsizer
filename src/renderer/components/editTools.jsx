@@ -259,5 +259,7 @@ function PropertiesTable({ properties }) {
 }
 
 async function dbFind() {
-  return window.electronAPI.dbFind();
+  const query = { name: 'anewtest' };
+  const result = await window.electronAPI.dbFindOne(query);
+  console.log(result);
 }
