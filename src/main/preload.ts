@@ -43,6 +43,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   dbFindOne: (query: object) => ipcRenderer.invoke('db:findOne', query),
   dbInsertOne: (data: object) => ipcRenderer.invoke('db:insertOne', data),
   dbReplaceOne: (query: object, data: object) => ipcRenderer.invoke('db:replaceOne', query, data),
+  uploadImage: (filePath: string) => ipcRenderer.invoke('aws:uploadImage', filePath),
 })
 
 contextBridge.exposeInMainWorld('electron', electronHandler);

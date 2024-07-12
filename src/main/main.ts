@@ -16,6 +16,7 @@ import path from 'path';
 import { dbFindOne, dbInsertOne, dbReplaceOne } from './db';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
+import { uploadImage } from './aws';
 
 const spawn = require("child_process").spawn;
 
@@ -311,6 +312,7 @@ app
     ipcMain.handle('db:findOne', dbFindOne)
     ipcMain.handle('db:insertOne', dbInsertOne)
     ipcMain.handle('db:replaceOne', dbReplaceOne)
+    ipcMain.handle('aws:uploadImage', uploadImage)
     createWindow();
     app.on('activate', () => {
       // On macOS it's common to re-create a window in the app when the

@@ -151,6 +151,10 @@ export default function EditTools({ currentPath, setCurrentPath }) {
     }
   }
 
+  async function uploadImage() {
+    window.electronAPI.uploadImage(currentPath + '/main.png');
+  }
+
   const firstRender = useRef(true);
 
   useEffect(() => {
@@ -181,6 +185,7 @@ export default function EditTools({ currentPath, setCurrentPath }) {
           <Button title="Select Cover" big={true} onClick={openCoverImage} />
           <Button title="Save Cover" big={true} onClick={saveCoverImage} />
           <Button title="Check Exist" big={true} onClick={findEntryInDB} />
+          <Button title="Upload" big={true} onClick={uploadImage} />
         </div>
       </div>
       <div className="mx-10">
