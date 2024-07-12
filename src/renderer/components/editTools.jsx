@@ -108,6 +108,8 @@ export default function EditTools({ currentPath, setCurrentPath }) {
   }
 
   async function saveCoverImage() {
+    console.log(coverImageRef.current.rotation());
+    return;
     if (!currentPath || !coverImageRef.current) {
       alert('Please open a folder first');
       return;
@@ -253,6 +255,21 @@ function OverlayCoverImage({
 }) {
   const sizeTransformerRef = useRef(null);
 
+  function getRotatedCoords(x, y, height, width, angle) {
+    if (angle < 0) {
+      angle = 360 + angle;
+    }
+    let newX, newY;
+    const hypotenuse = Math.sqrt((height / 2) ** 2 + (width / 2) ** 2);
+    const angleOffsetX = rad2deg(Math.asin(width / 2 / hypotenuse));
+    const angleOffsetY = angleOffsetX - 90;
+    const offsetX = Math.sin(deg2rad(-angleOffsetX)) * hypotenuse;
+    const offsetY = Math.sin(deg2rad(angleOffsetY)) * hypotenuse;
+    newX = Math.sin(deg2rad(angle - angleOffsetX)) * hypotenuse - offsetX;
+    newY = Math.sin(deg2rad(-angle + angleOffsetY)) * hypotenuse - offsetY;
+    return [newX, newY];
+  }
+
   useEffect(() => {
     if (coverImageRef.current && sizeTransformerRef.current) {
       sizeTransformerRef.current.nodes([coverImageRef.current]);
@@ -289,6 +306,15 @@ function OverlayCoverImage({
               width={coverImage?.naturalWidth * imageScale}
               opacity={0.7}
               draggable
+              onTransformEnd={(e) => {
+                getRotatedCoords(
+                  e.target.x() * e.target.scaleX(),
+                  e.target.y() * e.target.scaleY(),
+                  e.target.height() * e.target.scaleY(),
+                  e.target.width() * e.target.scaleX(),
+                  e.target.rotation(),
+                );
+              }}
             />
             <Transformer
               ref={sizeTransformerRef}
@@ -316,4 +342,12 @@ function PropertiesTable({ properties }) {
       </table>
     </div>
   );
+}
+
+function rad2deg(rad) {
+  return rad * (180 / Math.PI);
+}
+
+function deg2rad(deg) {
+  return deg * (Math.PI / 180);
 }
