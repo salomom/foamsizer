@@ -121,34 +121,56 @@ export default function EditTools({ currentPath, setCurrentPath }) {
       coverImg.width() * coverImg.scaleX(),
       coverImg.rotation(),
     );
-    await window.electronAPI.resizeImage(
-      coverImagePath,
-      currentPath + '/resized.png',
-      Math.round(fullWidth / imageScale),
-      Math.round(fullHeight / imageScale),
-      Math.round(coverImg.rotation()),
+    const size = {
+      width: Math.round(fullWidth / imageScale),
+      height: Math.round(fullHeight / imageScale),
+      rotation: Math.round(coverImg.rotation()),
+    };
+    const [offX, offY] = getOffset(
+      [
+        coverImg.width() * coverImg.scaleX(),
+        coverImg.height() * coverImg.scaleY(),
+      ],
+      coverImg.rotation(),
     );
-    setTimeout(() => {
-      // Idk why this only works with a delay
-      const [offX, offY] = getOffset(
-        [
-          coverImg.width() * coverImg.scaleX(),
-          coverImg.height() * coverImg.scaleY(),
-        ],
-        coverImg.rotation(),
-      );
-      const adjX = coverImg.x() - offX;
-      const adjY = coverImg.y() - offY;
-      window.electronAPI.cropImage(
-        currentPath + '/resized.png',
-        newCoverPath,
-        Math.round(-adjX / imageScale),
-        Math.round(-adjY / imageScale),
-        konvaMainImage.naturalWidth,
-        konvaMainImage.naturalHeight,
-        0,
-      );
-    }, 300);
+    const adjX = coverImg.x() - offX;
+    const adjY = coverImg.y() - offY;
+    const crop = {
+      left: Math.round(-adjX / imageScale),
+      top: Math.round(-adjY / imageScale),
+      width: konvaMainImage.naturalWidth,
+      height: konvaMainImage.naturalHeight,
+    };
+    const extend = {
+      top: 0,
+      left: 0,
+      bottom: 0,
+      right: 0,
+      background: { r: 255, g: 255, b: 255, alpha: 0 },
+    };
+    if (crop['left'] < 0) {
+      extend['left'] = Math.abs(crop['left']);
+      crop['left'] = 0;
+    }
+    if (crop['top'] < 0) {
+      extend['top'] = Math.abs(crop['top']);
+      crop['top'] = 0;
+    }
+    if (crop['left'] + crop['width'] > size['width']) {
+      extend['right'] =
+        crop['left'] + crop['width'] - size['width'] - extend['left'];
+    }
+    if (crop['top'] + crop['height'] > size['height']) {
+      extend['bottom'] =
+        crop['top'] + crop['height'] - size['height'] - extend['top'];
+    }
+    await window.electronAPI.convertCoverImage(
+      coverImagePath,
+      newCoverPath,
+      size,
+      extend,
+      crop,
+    );
   }
 
   function getFolderName() {

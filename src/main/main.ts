@@ -192,6 +192,22 @@ async function handleResizeImage(event:any, imgPath: string, outPath:string, wid
     })
 }
 
+async function handleConvertCoverImage(event:any, imgPath: string, outPath:string, size: any, extend: any, crop: any) {
+  const sharp = require('sharp')
+  sharp(imgPath)
+    .rotate(size.rotation)
+    .resize(size.width, size.height, {fit: "fill"})
+    .extend(extend)
+    .toFormat('png')
+    .toBuffer()
+    .then((data: any) => { sharp(data)
+    .extract(crop)
+    .toFile(outPath, function (err: any) {
+        if (err) console.log(err);
+    })
+    })
+}
+
 ipcMain.on('ipc-example', async (event, arg) => {
   const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
   console.log(msgTemplate(arg));
@@ -307,6 +323,7 @@ app
     ipcMain.handle('execute:scanImage', scanImage)
     ipcMain.handle('execute:cropImage', handleCropImage)
     ipcMain.handle('execute:resizeImage', handleResizeImage)
+    ipcMain.handle('execute:convertCoverImage', handleConvertCoverImage)
     ipcMain.handle('execute:contourFitting', handleContourFitting)
     ipcMain.handle('execute:findSymmetryLine', handleFindSymmetryLine)
     ipcMain.handle('db:findOne', dbFindOne)

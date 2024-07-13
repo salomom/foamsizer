@@ -38,6 +38,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   scanImage: (imgPath: string) => ipcRenderer.invoke('execute:scanImage', imgPath),
   cropImage: (imgPath: string, outPath: string, x: number, y: number, width: number, height: number, rotation: number) => ipcRenderer.invoke('execute:cropImage', imgPath, outPath, x, y, width, height, rotation),
   resizeImage: (imgPath: string, outPath: string, width: number, height: number, rotation: number) => ipcRenderer.invoke('execute:resizeImage', imgPath, outPath, width, height, rotation),
+  convertCoverImage: (imgPath: string, outPath: string, size: any, extend:any, crop:any) => ipcRenderer.invoke('execute:convertCoverImage', imgPath, outPath, size, extend, crop),
   contourFitting: (filePath: string) => ipcRenderer.invoke('execute:contourFitting', filePath),
   findSymmetryLine: (filePath: string) => ipcRenderer.invoke('execute:findSymmetryLine', filePath),
   dbFindOne: (query: object) => ipcRenderer.invoke('db:findOne', query),
