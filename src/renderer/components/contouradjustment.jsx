@@ -30,7 +30,7 @@ export default function ContourAdjuster({
   image = image
     ? 'data:image/jpg;base64,' + image
     : 'https://placehold.co/500x500';
-  const [konvaImage] = useImage(image);
+  const [konvaImage, konvaImageStatus] = useImage(image);
   const stageSize = { height: 700, width: 700 };
   const scale = getScale({ image: konvaImage, stageSize });
 
@@ -358,11 +358,13 @@ export default function ContourAdjuster({
         onWheel={handleZoom}
       >
         <Layer>
-          <Image
-            image={konvaImage}
-            height={konvaImage?.naturalHeight / 1.1811}
-            width={konvaImage?.naturalWidth / 1.1811}
-          />
+          {konvaImageStatus === 'loaded' && (
+            <Image
+              image={konvaImage}
+              height={konvaImage?.naturalHeight / 1.1811}
+              width={konvaImage?.naturalWidth / 1.1811}
+            />
+          )}
           <Line
             points={contourPoints.flat()}
             stroke={'red'}
