@@ -24,6 +24,7 @@ export default function EditTools({ currentPath, setCurrentPath }) {
   );
 
   async function openFile() {
+    // Shows open file dialog and returns the selected file path
     const filePath = await window.electronAPI.openFile();
     if (!filePath) {
       return;
@@ -107,13 +108,22 @@ export default function EditTools({ currentPath, setCurrentPath }) {
     return points_filtered;
   }
 
+  async function scanAsCover() {
+    if (!currentPath) {
+      alert('Please open a folder first');
+      return;
+    }
+    const src = currentPath + '/main.png';
+    const dest = currentPath + getCoverName();
+    await window.electronAPI.copyFile(src, dest);
+  }
+
   async function saveCoverImage() {
     if (!currentPath || !coverImageRef.current) {
       alert('Please open a folder first');
       return;
     }
-    const folderName = getFolderName();
-    const coverName = '/' + folderName + '_cover.png';
+    const coverName = getCoverName();
     const newCoverPath = currentPath + coverName;
     const coverImg = coverImageRef.current;
     const [fullHeight, fullWidth] = getRotatedSize(
@@ -177,6 +187,10 @@ export default function EditTools({ currentPath, setCurrentPath }) {
     return currentPath.split('\\').at(-1);
   }
 
+  function getCoverName() {
+    return '/' + getFolderName() + '_cover.png';
+  }
+
   async function findEntryInDB() {
     const query = { internalId: getFolderName() };
     const result = await window.electronAPI.dbFindOne(query);
@@ -195,8 +209,7 @@ export default function EditTools({ currentPath, setCurrentPath }) {
       alert('Please open a folder first');
       return;
     }
-    const folderName = getFolderName();
-    const coverName = '/' + folderName + '_cover.png';
+    const coverName = getCoverName();
     const coverPath = currentPath + coverName;
     // Check if cover image exists
     const coverExists = await window.electronAPI.fileExists(coverPath);
@@ -274,6 +287,7 @@ export default function EditTools({ currentPath, setCurrentPath }) {
         <div className="mb-5 flex items-center">
           <Button title="Select Cover" big={true} onClick={openCoverImage} />
           <Button title="Save Cover" big={true} onClick={saveCoverImage} />
+          <Button title="Scan as Cover" big={true} onClick={scanAsCover} />
           <Button title="Check Exist" big={true} onClick={findEntryInDB} />
           <Button title="Upload" big={true} onClick={uploadAll} />
         </div>

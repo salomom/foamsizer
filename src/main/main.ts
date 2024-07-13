@@ -13,10 +13,10 @@ import log from 'electron-log';
 import { autoUpdater } from 'electron-updater';
 import fs from 'fs';
 import path from 'path';
+import { uploadImage } from './aws';
 import { dbFindOne, dbInsertOne, dbReplaceOne } from './db';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
-import { uploadImage } from './aws';
 
 const spawn = require("child_process").spawn;
 
@@ -97,6 +97,16 @@ async function handleCreateDirectory(event:any, dirPath: string) {
     return dirPath
   } catch (error) {
     console.log(error)
+    return false
+  }
+}
+
+async function handleCopyFile(event:any, srcPath: string, destPath: string) {
+  try {
+    await fs.promises.copyFile(srcPath, destPath)
+    return true
+  } catch (error) {
+    console.error(error)
     return false
   }
 }
@@ -316,6 +326,7 @@ app
     ipcMain.handle('dialog:readFile', handleReadFile)
     ipcMain.handle('dialog:writeFile', handleWriteFile)
     ipcMain.handle('dialog:deleteFile', handleDeleteFile)
+    ipcMain.handle('dialog:copyFile', handleCopyFile)
     ipcMain.handle('dialog:openImage', handleOpenImage)
     ipcMain.handle('dialog:fileExists', handleFileExists)
     ipcMain.handle('dialog:createDirectory', handleCreateDirectory)
