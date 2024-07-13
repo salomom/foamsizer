@@ -212,6 +212,19 @@ export default function EditTools({ currentPath, setCurrentPath }) {
     const coverImageUrl = `https://toolsimages.s3.amazonaws.com/${folderName}_cover.png`;
     const width = konvaMainImage.naturalWidth * 0.0846666667;
     const height = konvaMainImage.naturalHeight * 0.0846666667;
+    const searchableProperties = [
+      properties?.name,
+      properties?.category,
+      properties?.manufacturer,
+      properties?.serialnumber,
+      properties?.type,
+      properties?.size,
+      properties?.variant,
+    ];
+    const searchString = searchableProperties
+      .map((prop) => prop || '')
+      .join(' ')
+      .replace('  ', ' ');
     // Upload to db
     const query = {
       ...properties,
@@ -219,6 +232,7 @@ export default function EditTools({ currentPath, setCurrentPath }) {
       image: coverImageUrl,
       width: width,
       height: height,
+      searchString: searchString,
     };
     if (!exists) {
       window.electronAPI.dbInsertOne(query);
