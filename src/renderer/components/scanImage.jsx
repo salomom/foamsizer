@@ -20,6 +20,9 @@ export default function ScanImage({ currentPath, setCurrentPath }) {
   }
 
   async function scanImageExists() {
+    if (!currentPath) {
+      return false;
+    }
     const exists = await window.electronAPI.fileExists(imgPath);
     return exists;
   }
@@ -76,9 +79,11 @@ export default function ScanImage({ currentPath, setCurrentPath }) {
   useEffect(() => {
     if (firstRender.current) {
       firstRender.current = false;
-      if (scanImageExists()) {
-        openScanImage();
-      }
+      scanImageExists().then((exists) => {
+        if (exists) {
+          openScanImage();
+        }
+      });
       return;
     }
   });

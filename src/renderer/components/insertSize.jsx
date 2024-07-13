@@ -24,6 +24,13 @@ export default function InsertSize({ currentPath, setCurrentPath }) {
   }
 
   async function readPropertyFile(filePath) {
+    const fileExists = await window.electronAPI.fileExists(
+      filePath + '/properties.txt',
+    );
+    if (!fileExists) {
+      setTextAreaContent('');
+      return;
+    }
     const fileContent = await window.electronAPI.readFile(
       filePath + '/properties.txt',
     );
@@ -35,6 +42,11 @@ export default function InsertSize({ currentPath, setCurrentPath }) {
   }
 
   async function readMainImage(filePath) {
+    const fileExists = await window.electronAPI.fileExists(imgPath);
+    if (!fileExists) {
+      setMainImage('');
+      return;
+    }
     const imgBase64 = await window.electronAPI.openImage(imgPath);
     if (!imgBase64) {
       setMainImage('');
@@ -44,6 +56,9 @@ export default function InsertSize({ currentPath, setCurrentPath }) {
   }
 
   async function analyzeImage() {
+    if (!currentPath) {
+      return [];
+    }
     const points = await window.electronAPI.analyzeImage(imgPath);
     var adjusted_points = [];
     points.forEach((point) => {
@@ -53,6 +68,13 @@ export default function InsertSize({ currentPath, setCurrentPath }) {
   }
 
   async function getContourPoints(filePath) {
+    const fileExists = await window.electronAPI.fileExists(
+      filePath + '/contour.txt',
+    );
+    if (!fileExists) {
+      const points = await analyzeImage();
+      return points;
+    }
     const contourFileContent = await window.electronAPI.readFile(
       filePath + '/contour.txt',
     );
@@ -64,6 +86,12 @@ export default function InsertSize({ currentPath, setCurrentPath }) {
   }
 
   async function getShapes(filePath) {
+    const fileExists = await window.electronAPI.fileExists(
+      filePath + '/shapes.txt',
+    );
+    if (!fileExists) {
+      return [];
+    }
     const shapesFileContent = await window.electronAPI.readFile(
       filePath + '/shapes.txt',
     );
