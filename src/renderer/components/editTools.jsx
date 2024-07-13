@@ -239,6 +239,7 @@ export default function EditTools({ currentPath, setCurrentPath }) {
         readMainImage(currentPath);
         readPropertyFile(currentPath);
         getContourPoints(currentPath);
+        findEntryInDB();
       }
       return;
     }
