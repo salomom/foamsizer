@@ -189,10 +189,6 @@ export default function EditTools({ currentPath, setCurrentPath }) {
     }
   }
 
-  async function uploadImage() {
-    window.electronAPI.uploadImage(currentPath + '/main.png');
-  }
-
   async function uploadAll() {
     // Upload cover image to s3 and properties to db
     if (!currentPath) {
@@ -204,7 +200,7 @@ export default function EditTools({ currentPath, setCurrentPath }) {
     const coverPath = currentPath + coverName;
     // Check if cover image exists
     const coverExists = await window.electronAPI.fileExists(coverPath);
-    if (coverExists) {
+    if (!coverExists) {
       alert('Cover image does not exist');
       return;
     }
@@ -213,8 +209,17 @@ export default function EditTools({ currentPath, setCurrentPath }) {
     if (existsInDb === null) {
       exists = await findEntryInDB();
     }
+    const coverImageUrl = `https://toolsimages.s3.amazonaws.com/${folderName}_cover.png`;
+    const width = konvaMainImage.naturalWidth * 0.0846666667;
+    const height = konvaMainImage.naturalHeight * 0.0846666667;
     // Upload to db
-    const query = { ...properties, internalId: folderName };
+    const query = {
+      ...properties,
+      internalId: folderName,
+      image: coverImageUrl,
+      width: width,
+      height: height,
+    };
     if (!exists) {
       window.electronAPI.dbInsertOne(query);
     } else {
@@ -255,7 +260,7 @@ export default function EditTools({ currentPath, setCurrentPath }) {
           <Button title="Select Cover" big={true} onClick={openCoverImage} />
           <Button title="Save Cover" big={true} onClick={saveCoverImage} />
           <Button title="Check Exist" big={true} onClick={findEntryInDB} />
-          <Button title="Upload" big={true} onClick={uploadImage} />
+          <Button title="Upload" big={true} onClick={uploadAll} />
         </div>
       </div>
       <div className="mx-10">
