@@ -32,6 +32,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   deleteFile: (filePath: string) => ipcRenderer.invoke('dialog:deleteFile', filePath),
   copyFile: (srcPath: string, destPath: string) => ipcRenderer.invoke('dialog:copyFile', srcPath, destPath),
   fileExists: (filePath: string) => ipcRenderer.invoke('dialog:fileExists', filePath),
+  downloadFile: (url: string, destPath: string) => ipcRenderer.invoke('dialog:downloadFile', url, destPath),
   openImage: (imgPath: string) => ipcRenderer.invoke('dialog:openImage', imgPath),
   createDirectory: (dirPath: string) => ipcRenderer.invoke('dialog:createDirectory', dirPath),
   analyzeImage: (imgPath: string) => ipcRenderer.invoke('execute:analyzeImage', imgPath),

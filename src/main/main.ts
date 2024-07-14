@@ -121,6 +121,14 @@ async function handleOpenImage (event:any, imgPath: string) {
   }
 }
 
+async function handleDownloadFile(event:any, url: string, destPath: string) {
+  const https = require('https')
+  const fs = require('fs')
+  await https.get(url, (response: any) => {
+    response.pipe(fs.createWriteStream(destPath))
+  })
+}
+
 async function handleAnalyzeImage (event:any, imgPath: string) {
   return new Promise((resolve, reject) => {
     const pyProg = spawn('python', ['./opencv/test.py', imgPath]);
@@ -330,6 +338,7 @@ app
     ipcMain.handle('dialog:openImage', handleOpenImage)
     ipcMain.handle('dialog:fileExists', handleFileExists)
     ipcMain.handle('dialog:createDirectory', handleCreateDirectory)
+    ipcMain.handle('dialog:downloadFile', handleDownloadFile)
     ipcMain.handle('execute:analyzeImage', handleAnalyzeImage)
     ipcMain.handle('execute:scanImage', scanImage)
     ipcMain.handle('execute:cropImage', handleCropImage)

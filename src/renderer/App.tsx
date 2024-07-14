@@ -5,11 +5,12 @@ import Sidebar from './components/sidebar';
 import InsertSize from './components/insertSize';
 import EditTools from './components/editTools';
 import ScanImage from './components/scanImage';
+import CoverCreator from './components/coverCreator';
 import { FaArrowsLeftRightToLine } from "react-icons/fa6";
 
 
 function Main() {
-  const [activeTab, setActiveTab] = useState(2);
+  const [activeTab, setActiveTab] = useState(3);
   const [currentPath, setCurrentPath] = useState('');
   const tabs = [
     {
@@ -26,6 +27,11 @@ function Main() {
       title: 'Edit Tools',
       icon: <FaArrowsLeftRightToLine/>,
       element: <EditTools currentPath={currentPath} setCurrentPath={setCurrentPath} />
+    },
+    {
+      title: 'Create Cover',
+      icon: <FaArrowsLeftRightToLine/>,
+      element: <CoverCreator currentPath={currentPath} setCurrentPath={setCurrentPath} />
     }
   ];
   return (
