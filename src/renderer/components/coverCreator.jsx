@@ -8,7 +8,9 @@ export default function ScanImage({ currentPath, setCurrentPath }) {
   const [sizeRect, setSizeRect] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const [imgRotation, setImgRotation] = useState(0.0);
   const [imageModalOpen, setImageModalOpen] = useState(false);
+  const [properties, setProperties] = useState({});
   const imgPath = currentPath + getCoverName();
+  const [konvaImage, konvaImageStatus] = useImage(image);
 
   const basePath = 'C:/Users/timal/Desktop/foamsizer/';
 
@@ -37,15 +39,35 @@ export default function ScanImage({ currentPath, setCurrentPath }) {
   }
 
   async function cropImage() {
-    await window.electronAPI.cropImage(
+    const x = sizeRect.x < 0 ? 0 : sizeRect.x;
+    const y = sizeRect.y < 0 ? 0 : sizeRect.y;
+    const cropHeight =
+      sizeRect.height + y > konvaImage.naturalHeight
+        ? konvaImage.naturalHeight - y
+        : sizeRect.height;
+    const cropWidth =
+      sizeRect.width + x > konvaImage.naturalWidth
+        ? konvaImage.naturalWidth - x
+        : sizeRect.width;
+    window.electronAPI.cropImage(
       imgPath,
       currentPath + '/cover_cropped.png',
-      sizeRect.x,
-      sizeRect.y,
-      sizeRect.width,
-      sizeRect.height,
+      x,
+      y,
+      cropWidth,
+      cropHeight,
       imgRotation,
     );
+    const height = heightInputRef.current.value;
+    const width = widthInputRef.current.value;
+    var propertiesObj = properties;
+    if (height) {
+      propertiesObj['height'] = height;
+    }
+    if (width) {
+      propertiesObj['width'] = width;
+    }
+    await saveProperties(propertiesObj);
   }
 
   async function createNewDirectory() {
@@ -63,6 +85,7 @@ export default function ScanImage({ currentPath, setCurrentPath }) {
     setImage('https://placehold.co/500x500');
     setCurrentPath(newDir);
     await createPresetPropertiesFile(newDir);
+    await readPropertyFile();
   }
 
   async function createPresetPropertiesFile(directory) {
@@ -76,13 +99,53 @@ export default function ScanImage({ currentPath, setCurrentPath }) {
   }
 
   async function getImageFromUrl(url) {
-    console.log(imgPath);
     setImageModalOpen(false);
     await window.electronAPI.downloadFile(url, imgPath);
     openCoverImage();
   }
 
+  async function readPropertyFile() {
+    const fileContent = await window.electronAPI.readFile(
+      currentPath + '/properties.txt',
+    );
+    if (!fileContent) {
+      setProperties({});
+    } else {
+      const propertiesObj = {};
+      const lines = fileContent.split('\n');
+      lines.forEach((line) => {
+        const [key, value] = line.split(':');
+        if (!value) {
+          return;
+        }
+        if (value[0] === ' ') {
+          propertiesObj[key] = value.slice(1);
+        } else {
+          propertiesObj[key] = value;
+        }
+      });
+      setProperties(propertiesObj);
+    }
+  }
+
+  async function saveProperties(propertiesObj) {
+    if (!currentPath) {
+      alert('Please open a folder first');
+      return;
+    }
+    let propertiesString = '';
+    for (const [key, value] of Object.entries(propertiesObj)) {
+      propertiesString += `${key}: ${value}\n`;
+    }
+    await window.electronAPI.writeFile(
+      currentPath + '/properties.txt',
+      propertiesString,
+    );
+  }
+
   const firstRender = useRef(true);
+  const heightInputRef = useRef(null);
+  const widthInputRef = useRef(null);
 
   useEffect(() => {
     if (firstRender.current) {
@@ -92,6 +155,9 @@ export default function ScanImage({ currentPath, setCurrentPath }) {
           openCoverImage();
         }
       });
+      if (currentPath) {
+        readPropertyFile();
+      }
       return;
     }
   });
@@ -131,12 +197,32 @@ export default function ScanImage({ currentPath, setCurrentPath }) {
               className="pl-2 h-10 rounded-md font-bold"
             />
           </div>
+          <div className="ml-3">
+            <label className="block text-white font-bold my-2">Height</label>
+            <input
+              type="number"
+              min="0"
+              className="pl-2 h-10 rounded-md font-bold"
+              ref={heightInputRef}
+            />
+          </div>
+          <div className="ml-3">
+            <label className="block text-white font-bold my-2">Width</label>
+            <input
+              type="number"
+              min="0"
+              className="pl-2 h-10 rounded-md font-bold"
+              ref={widthInputRef}
+            />
+          </div>
         </div>
         {!imageModalOpen && (
           <ImageCrop
             image={image}
             rotation={imgRotation}
             setSizeRect={setSizeRect}
+            konvaImage={konvaImage}
+            konvaImageStatus={konvaImageStatus}
           />
         )}
       </div>
@@ -144,8 +230,13 @@ export default function ScanImage({ currentPath, setCurrentPath }) {
   );
 }
 
-function ImageCrop({ image, rotation, setSizeRect }) {
-  const [konvaImage, konvaImageStatus] = useImage(image);
+function ImageCrop({
+  image,
+  rotation,
+  setSizeRect,
+  konvaImage,
+  konvaImageStatus,
+}) {
   const sizeRect = useRef(null);
   const sizeTransformer = useRef(null);
 
