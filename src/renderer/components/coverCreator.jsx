@@ -77,8 +77,9 @@ export default function ScanImage({ currentPath, setCurrentPath }) {
 
   async function getImageFromUrl(url) {
     console.log(imgPath);
-    window.electronAPI.downloadFile(url, imgPath);
     setImageModalOpen(false);
+    await window.electronAPI.downloadFile(url, imgPath);
+    openCoverImage();
   }
 
   const firstRender = useRef(true);
@@ -116,6 +117,7 @@ export default function ScanImage({ currentPath, setCurrentPath }) {
             }}
             big
           />
+          <Button title="Make Transparent" onClick={() => {}} big />
           <Button title="Crop" onClick={cropImage} big />
           <div>
             <label className="block text-white font-bold my-2">Rotation</label>
@@ -143,11 +145,18 @@ export default function ScanImage({ currentPath, setCurrentPath }) {
 }
 
 function ImageCrop({ image, rotation, setSizeRect }) {
-  const [konvaImage] = useImage(image);
+  const [konvaImage, konvaImageStatus] = useImage(image);
   const sizeRect = useRef(null);
   const sizeTransformer = useRef(null);
 
-  const imgSize = [508, 699];
+  let imgSize = [100, 100];
+  const stageHeight = 800;
+  const stageWidth = 800;
+  let scale = 1;
+  if (konvaImageStatus === 'loaded') {
+    imgSize = [konvaImage.naturalHeight, konvaImage.naturalWidth];
+    scale = Math.min(stageHeight / imgSize[0], stageWidth / imgSize[1]);
+  }
   const [offsetX, offsetY] = getOffset(imgSize, rotation);
 
   useEffect(() => {
@@ -160,7 +169,12 @@ function ImageCrop({ image, rotation, setSizeRect }) {
   return (
     <div className="mt-4">
       {image && (
-        <Stage width={864} height={864} scaleX={0.2} scaleY={0.2}>
+        <Stage
+          width={stageWidth}
+          height={stageHeight}
+          scaleX={scale}
+          scaleY={scale}
+        >
           <Layer>
             <Image
               image={konvaImage}
@@ -227,34 +241,34 @@ function getOffset(imgSize, rotation) {
   var offsetY = 0;
   if (rotation >= -90 && rotation <= 90) {
     offsetX = Math.max(
-      Math.round(Math.cos(((90 - rotation) / 180) * Math.PI) * imgSize[1] * 5),
+      Math.round(Math.cos(((90 - rotation) / 180) * Math.PI) * imgSize[1]),
       0,
     );
     offsetY = Math.max(
-      Math.round(Math.cos(((-90 - rotation) / 180) * Math.PI) * imgSize[0] * 5),
+      Math.round(Math.cos(((-90 - rotation) / 180) * Math.PI) * imgSize[0]),
       0,
     );
   } else if (rotation > 90) {
     offsetX = Math.max(
       Math.round(
-        Math.sin(((rotation - 90) / 180) * Math.PI) * imgSize[0] * 5 +
-          Math.cos(((rotation - 90) / 180) * Math.PI) * imgSize[1] * 5,
+        Math.sin(((rotation - 90) / 180) * Math.PI) * imgSize[0] +
+          Math.cos(((rotation - 90) / 180) * Math.PI) * imgSize[1],
       ),
       0,
     );
     offsetY = Math.max(
-      Math.round(Math.sin(((rotation - 90) / 180) * Math.PI) * imgSize[1] * 5),
+      Math.round(Math.sin(((rotation - 90) / 180) * Math.PI) * imgSize[1]),
       0,
     );
   } else {
     offsetX = Math.max(
-      Math.round(-Math.sin(((90 + rotation) / 180) * Math.PI) * imgSize[0] * 5),
+      Math.round(-Math.sin(((90 + rotation) / 180) * Math.PI) * imgSize[0]),
       0,
     );
     offsetY = Math.max(
       Math.round(
-        -Math.sin(((90 + rotation) / 180) * Math.PI) * imgSize[1] * 5 +
-          Math.cos(((90 + rotation) / 180) * Math.PI) * imgSize[0] * 5,
+        -Math.sin(((90 + rotation) / 180) * Math.PI) * imgSize[1] +
+          Math.cos(((90 + rotation) / 180) * Math.PI) * imgSize[0],
       ),
       0,
     );
