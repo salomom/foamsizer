@@ -26,12 +26,16 @@ export default function ScanImage({ currentPath, setCurrentPath }) {
     if (!currentPath) {
       return false;
     }
-    const exists = await window.electronAPI.fileExists(imgPath);
+    const exists = await window.electronAPI.fileExists(
+      currentPath + '/cover.png',
+    );
     return exists;
   }
 
   async function openCoverImage() {
-    const imgBase64 = await window.electronAPI.openImage(imgPath);
+    const imgBase64 = await window.electronAPI.openImage(
+      currentPath + '/cover.png',
+    );
     if (!imgBase64) {
       return;
     }
@@ -41,17 +45,11 @@ export default function ScanImage({ currentPath, setCurrentPath }) {
   async function cropImage() {
     const x = sizeRect.x < 0 ? 0 : sizeRect.x;
     const y = sizeRect.y < 0 ? 0 : sizeRect.y;
-    const cropHeight =
-      sizeRect.height + y > konvaImage.naturalHeight
-        ? konvaImage.naturalHeight - y
-        : sizeRect.height;
-    const cropWidth =
-      sizeRect.width + x > konvaImage.naturalWidth
-        ? konvaImage.naturalWidth - x
-        : sizeRect.width;
+    const cropHeight = sizeRect.height;
+    const cropWidth = sizeRect.width;
     window.electronAPI.cropImage(
+      currentPath + '/cover.png',
       imgPath,
-      currentPath + '/cover_cropped.png',
       x,
       y,
       cropWidth,
@@ -66,6 +64,16 @@ export default function ScanImage({ currentPath, setCurrentPath }) {
     }
     if (width) {
       propertiesObj['width'] = width;
+    }
+    if (propertiesObj.height && !propertiesObj.width) {
+      propertiesObj.width = Math.round(
+        (propertiesObj.height / cropHeight) * cropWidth,
+      );
+    }
+    if (propertiesObj.width && !propertiesObj.height) {
+      propertiesObj.height = Math.round(
+        (propertiesObj.width / cropWidth) * cropHeight,
+      );
     }
     await saveProperties(propertiesObj);
   }
@@ -100,7 +108,7 @@ export default function ScanImage({ currentPath, setCurrentPath }) {
 
   async function getImageFromUrl(url) {
     setImageModalOpen(false);
-    await window.electronAPI.downloadFile(url, imgPath);
+    await window.electronAPI.downloadFile(url, currentPath + '/cover.png');
     openCoverImage();
   }
 
@@ -141,6 +149,11 @@ export default function ScanImage({ currentPath, setCurrentPath }) {
       currentPath + '/properties.txt',
       propertiesString,
     );
+  }
+  async function makeTransparent() {
+    const inputPath = currentPath + '/cover.png';
+    const outputPath = currentPath + '/cover.png';
+    window.electronAPI.removeBackground(inputPath, outputPath);
   }
 
   const firstRender = useRef(true);
@@ -183,7 +196,7 @@ export default function ScanImage({ currentPath, setCurrentPath }) {
             }}
             big
           />
-          <Button title="Make Transparent" onClick={() => {}} big />
+          <Button title="Make Transparent" onClick={makeTransparent} big />
           <Button title="Crop" onClick={cropImage} big />
           <div>
             <label className="block text-white font-bold my-2">Rotation</label>
@@ -245,7 +258,7 @@ function ImageCrop({
   const stageWidth = 800;
   let scale = 1;
   if (konvaImageStatus === 'loaded') {
-    imgSize = [konvaImage.naturalHeight, konvaImage.naturalWidth];
+    imgSize = [konvaImage.naturalWidth, konvaImage.naturalHeight];
     scale = Math.min(stageHeight / imgSize[0], stageWidth / imgSize[1]);
   }
   const [offsetX, offsetY] = getOffset(imgSize, rotation);

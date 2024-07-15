@@ -226,6 +226,16 @@ async function handleConvertCoverImage(event:any, imgPath: string, outPath:strin
     })
 }
 
+async function handleRemoveBackground(event:any, inputPath: string, outputPath: string) {
+  return new Promise((resolve, reject) => {
+    const pyProg = spawn('python', ['./opencv/remove_bg.py', inputPath, outputPath]);
+    pyProg.on('close', function(code:any) {
+      console.log('Process terminated with code:', code);
+      resolve(true);
+    });
+  });
+}
+
 ipcMain.on('ipc-example', async (event, arg) => {
   const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
   console.log(msgTemplate(arg));
@@ -350,6 +360,7 @@ app
     ipcMain.handle('db:insertOne', dbInsertOne)
     ipcMain.handle('db:replaceOne', dbReplaceOne)
     ipcMain.handle('aws:uploadImage', uploadImage)
+    ipcMain.handle('execute:removeBackground', handleRemoveBackground)
     createWindow();
     app.on('activate', () => {
       // On macOS it's common to re-create a window in the app when the

@@ -1,7 +1,6 @@
 // Disable no-unused-vars, broken for spread args
 /* eslint no-unused-vars: off */
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
-
 export type Channels = 'ipc-example';
 
 const electronHandler = {
@@ -46,6 +45,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   dbInsertOne: (data: object) => ipcRenderer.invoke('db:insertOne', data),
   dbReplaceOne: (query: object, data: object) => ipcRenderer.invoke('db:replaceOne', query, data),
   uploadImage: (filePath: string) => ipcRenderer.invoke('aws:uploadImage', filePath),
+  removeBackground: (inputPath: string, outputPath: string) => ipcRenderer.invoke('execute:removeBackground', inputPath, outputPath),
 })
 
 contextBridge.exposeInMainWorld('electron', electronHandler);
