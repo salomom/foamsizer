@@ -222,6 +222,7 @@ export default function EditTools({ currentPath, setCurrentPath }) {
     if (existsInDb === null) {
       exists = await findEntryInDB();
     }
+    const folderName = getFolderName();
     const coverImageUrl = `https://toolsimages.s3.amazonaws.com/${folderName}_cover.png`;
     const width = konvaMainImage.naturalWidth * 0.0846666667;
     const height = konvaMainImage.naturalHeight * 0.0846666667;
